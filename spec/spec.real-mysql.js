@@ -10,8 +10,11 @@ describe 'connection'
 					config.mysql.password,
 					config.mysql.database);
     end
-    it 'should be not undefined'
-      conn.should.not.be_null
+    it 'should be mysql.Connection'
+      conn.should.be_a mysql.Connection
     end
-  end  
+
+    it ''
+    end
+  end
 end

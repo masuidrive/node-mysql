@@ -1,10 +1,9 @@
 var sys = require('sys');
 var mysql = require('./lib/mysql');
 
-var conn = new mysql.Connection('localhost','nodejs_mysql', 'nodejs_mysql', 'nodejs_mysql');
+var conn = new mysql.createConnection('localhost','nodejs_mysql', 'nodejs_mysql', 'nodejs_mysql');
 setTimeout(function() {
-    conn
-	.query("SELECT now();")
+    conn.query("SELECT now();")
 	.addCallback(function(n) {
 	    sys.puts("!");
 	})

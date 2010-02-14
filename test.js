@@ -6,7 +6,7 @@ conn.connect('localhost','nodejs_mysql', 'nodejs_mysql', 'nodejs_mysql')
     .addCallback(function() {
 	conn.query("SELECT now();")
 	    .addCallback(function(n) {
-		sys.puts("!");
+		sys.puts("result:"+n);
 	    })
 	    .addErrback(function(type, message) {
 		sys.puts("Error: "+type+" "+message);

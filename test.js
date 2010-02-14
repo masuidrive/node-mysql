@@ -4,9 +4,12 @@ var mysql = require('./lib/mysql');
 var conn = new mysql.Connection();
 conn.connect('localhost','nodejs_mysql', 'nodejs_mysql', 'nodejs_mysql')
     .addCallback(function() {
-	conn.query("SELECT now();")
-	    .addCallback(function(n) {
-		sys.puts("result: "+sys.inspect(n));
+	// conn.query("SELECT now();")
+	conn.query("SELECT * FROM test1;")
+	    .addCallback(function(res) {
+		res.map(function(n) {
+		    sys.puts("result: "+sys.inspect(n.toHash()));
+		});
 	    })
 	    .addErrback(function(type, message) {
 		sys.puts("Error: "+type+" "+message);

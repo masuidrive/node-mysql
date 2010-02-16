@@ -17,5 +17,5 @@ conn.query("SELECT * FROM test1;")
 	};
     })
     .addErrback(function(type, message) {
-	sys.puts("Error: "+type+" "+message);
+	sys.puts(type+": "+message);
     });

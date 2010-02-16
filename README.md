@@ -35,6 +35,16 @@ I'll work for error handling, prepared statement, Spec tests.
             sys.puts("Error: "+type+" "+message);
         });
 
+# Requirements
+
+* [node.js](http://nodejs.org/) (tested on v0.1.28)
+
+
+Optional:
+
+* [node-crypt](http://github.com/waveto/node-crypto) for faster authenticate.
+
+
 # License
 
 MIT License. See LICENSE file.

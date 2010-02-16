@@ -24,7 +24,7 @@ I'll work for error handling, prepared statement, Spec tests.
     var conn = new mysql.Connection();
     conn.connect('localhost','nodejs_mysql', 'nodejs_mysql', 'nodejs_mysql');
     conn.query("CREATE TEMPORARY TABLE test1(intval INTEGER, strval TEXT, timestampval TIMESTAMP, boolval BOOLEAN);");
-    conn.query("INSERT INTO test1 VALUES(1,'a',now(),true);")
+    conn.query("INSERT INTO test1 VALUES(1,'a',now(),true);");
     conn.query("SELECT * FROM test1;")
         .addCallback(function(result) {
             for(var i=0; i<result.records.length; ++i) {

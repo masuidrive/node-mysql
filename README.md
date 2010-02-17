@@ -8,7 +8,7 @@ It could not for development and production.
 
 Now It can execute query and get results. It don't have error handling.
 
-I'll work for error handling, prepared statement, Spec tests.
+I'll work for error/timeout handling, prepared statements, more and more tests.
 
 
 # Example

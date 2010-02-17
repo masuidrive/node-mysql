@@ -77,9 +77,3 @@ pack/unpack from php.js
 * [http://phpjs.org/functions/pack:880](http://phpjs.org/functions/pack:880)
 * Author: Tim de Koning (http://www.kingsquare.nl)
 * License: BSD
-
-test helper functions from redis-node-client
-
-* [http://github.com/fictorial/redis-node-client/blob/master/test.js](redis-node-client)
-* Copyright (C) 2009 Fictorial LLC
-* License: MIT

@@ -36,69 +36,6 @@ var exceptClass = function(klass,obj) {
 }
 exports.exceptClass = exceptClass;
 
-var expect_true_reply = function(promise) {
-  // Redis' protocol returns +OK for some operations.
-  // The client converts this into a ECMAScript boolean type with value true.
-  
-  expect_callback();
-  promise.addCallback(function (reply) {
-    test.assertEquals(typeof(reply), 'boolean');
-    test.assertTrue(reply);
-    was_called_back();
-  });
-  promise.addErrback(function (error) {
-    test.assertFalse(error);
-  });
-}
-exports.expect_true_reply = expect_true_reply;
-
-var expectFalse = function(promise) {
-  expect_callback();
-  promise.addCallback(function (reply) {
-    test.assertEquals(typeof(reply), 'boolean');
-    test.assertFalse(reply);
-    was_called_back();
-  });
-  promise.addErrback(function (error) {
-    test.assertFalse(error);
-  });
-}
-exports.expectFalse = expectFalse;
-
-var expect_numeric_reply = function(expected_value, promise) {
-  expect_callback();
-  promise.addCallback(function (reply) {
-    test.assertEquals(typeof(reply), 'number');
-    test.assertEquals(expected_value, reply);
-    was_called_back();
-  });
-  promise.addErrback(function (error) {
-    test.assertFalse(error);
-  });
-}
-exports.expect_numeric_reply = expect_numeric_reply;
- 
-var expect_zero_as_reply = function expect_zero_as_reply(promise) {
-  return expect_numeric_reply(0, promise);
-}
-exports.expect_zero_as_reply = expect_zero_as_reply;
- 
-var expect_one_as_reply = function(promise) {
-  return expect_numeric_reply(1, promise);
-}
-exports.expect_one_as_reply = expect_one_as_reply;
-
-
-/*
-helper functions from below file.
-http://github.com/fictorial/redis-node-client/blob/master/test.js
-
-// Redis client for Node.js -- tests.
-// Author: Brian Hammond <brian at fictorial dot com>
-// Copyright (C) 2009 Fictorial LLC
-// License: MIT
-*/
-
 /*
 node-mysql
 A node.js interface for MySQL

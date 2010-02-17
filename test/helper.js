@@ -21,11 +21,11 @@ var run = function(testfuncs){
     testfunc()
 	.addCallback(function() {
 	    test.assertEquals(0, pending_callbacks);
-	    sys.puts("success");
+	    sys.puts("Success");
 	    run(testfuncs);
 	})
 	.addErrback(function() {
-	    sys.puts("test failed");
+	    sys.puts("Failed");
 	    run(testfuncs);
 	});
 }

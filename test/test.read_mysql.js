@@ -42,10 +42,21 @@ var test_result1 = function() {
     helper.exceptClass(mysql.Connection, conn);
     conn.connect();
     conn.query('CREATE TEMPORARY TABLE t (id INTEGER, str VARCHAR(10), PRIMARY KEY (id))');
-    conn.query("INSERT INTO t VALUES (1,'abc'),(2,'defg'),(3,'hi'),(4,null)");
+    conn.query("INSERT INTO t VALUES (1,'abc'),(-2,'0'),(3.1,''),(4,null)");
     helper.expect_callback();
     conn.query('SELECT * FROM t').addCallback(function(result) {
 	helper.was_called_back();
+	test.assertEquals(4, result.records.length);
+	
+	test.assertEquals(1, result.records[0][0]);
+	test.assertEquals('abc', result.records[0][1]); // string
+	test.assertEquals(-2, result.records[1][0]);
+	test.assertEquals('0', result.records[1][1]); // string
+	test.assertEquals(3, result.records[2][0]);
+	test.assertEquals('', result.records[2][1]); // blank string
+	test.assertEquals(4, result.records[3][0]);
+	test.assertEquals(null, result.records[3][1]); // null string
+	
 	conn_close(conn, promise);
     });
     return promise;

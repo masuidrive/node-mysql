@@ -37,7 +37,7 @@ I'll work for error handling, prepared statement, Spec tests.
 
 # Requirements
 
-* [node.js](http://nodejs.org/) (tested on v0.1.28)
+* [node.js](http://nodejs.org/) > v0.1.28 or trunk
 
 
 Optional:
@@ -58,16 +58,28 @@ Code by Yuichiro MASUI a.k.a. masuidrive
 * [http://blog.masuidrive.jp/](http://blog.masuidrive.jp/)
 
 
-# Related
+# Included files
 
-Some code from tmtm's ruby-mysql.
+MySQL protocol encode/decode from tmtm's ruby-mysql.
 
 * [http://github.com/tmtm/ruby-mysql](http://github.com/tmtm/ruby-mysql)
+* Copyright: Copyright (c) 2009-2010 TOMITA Masahiro 
+* License: Ruby's
 
 SHA1 library from Takanori Ishikawa.
 
 * [http://www.metareal.org/](http://www.metareal.org/)
+* Copyright (c) 2008  Takanori Ishikawa  <takanori.ishikawa@gmail.com>
+* License: MIT
 
 pack/unpack from php.js
 
 * [http://phpjs.org/functions/pack:880](http://phpjs.org/functions/pack:880)
+* Author: Tim de Koning (http://www.kingsquare.nl)
+* License: BSD
+
+test helper functions from redis-node-client
+
+* [http://github.com/fictorial/redis-node-client/blob/master/test.js](redis-node-client)
+* Copyright (C) 2009 Fictorial LLC
+* License: MIT

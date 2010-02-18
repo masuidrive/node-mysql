@@ -42,11 +42,11 @@ var test_result1 = function() {
     helper.exceptClass(mysql.Connection, conn);
     conn.connect();
     conn.query('CREATE TEMPORARY TABLE t (id INTEGER, str VARCHAR(10), PRIMARY KEY (id))');
-    conn.query("INSERT INTO t VALUES (1,'abc'),(-2,'0'),(3.1,''),(4,null)");
+    conn.query("INSERT INTO t VALUES (1,'abc'),(2,'0'),(3,''),(4,null)");
     
     // execute SELECT query
     helper.expect_callback();
-    conn.query('SELECT * FROM t').addCallback(function(result) {
+    conn.query('SELECT * FROM t ORDER BY id').addCallback(function(result) {
 	helper.was_called_back();
 	
 	// field information
@@ -71,16 +71,40 @@ var test_result1 = function() {
 	test.assertEquals(4, result.records.length);
 	test.assertEquals(1, result.records[0][0]);
 	test.assertEquals('abc', result.records[0][1]); // string
-	test.assertEquals(-2, result.records[1][0]);
+	test.assertEquals(2, result.records[1][0]);
 	test.assertEquals('0', result.records[1][1]); // string
 	test.assertEquals(3, result.records[2][0]);
 	test.assertEquals('', result.records[2][1]); // blank string
 	test.assertEquals(4, result.records[3][0]);
 	test.assertEquals(null, result.records[3][1]); // null string
 	
+    });
+
+    // table & column alias
+    helper.expect_callback();
+    conn.query('SELECT id as pkey FROM t as ttt ORDER BY pkey').addCallback(function(result) {
+	helper.was_called_back();
+	
+	// field information
+	test.assertEquals(1, result.fields.length);
+	test.assertEquals('LONG', result.fields[0].type.name);
+	test.assertEquals('nodejs_mysql', result.fields[0].db);
+	test.assertEquals('pkey', result.fields[0].name);
+	test.assertEquals('id', result.fields[0].org_name);
+	test.assertEquals('ttt', result.fields[0].table);
+	test.assertEquals('t', result.fields[0].org_table);
+	test.assertEquals(11, result.fields[0].length);
+	
+	// result data
+	test.assertEquals(4, result.records.length);
+	test.assertEquals(1, result.records[0][0]);
+	test.assertEquals(2, result.records[1][0]);
+	test.assertEquals(3, result.records[2][0]);
+	test.assertEquals(4, result.records[3][0]);
+	
 	conn_close(conn, promise);
     });
-    
+
     return promise;
 };
 all_tests.push(test_result1);

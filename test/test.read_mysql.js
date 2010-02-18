@@ -43,11 +43,32 @@ var test_result1 = function() {
     conn.connect();
     conn.query('CREATE TEMPORARY TABLE t (id INTEGER, str VARCHAR(10), PRIMARY KEY (id))');
     conn.query("INSERT INTO t VALUES (1,'abc'),(-2,'0'),(3.1,''),(4,null)");
+    
+    // execute SELECT query
     helper.expect_callback();
     conn.query('SELECT * FROM t').addCallback(function(result) {
 	helper.was_called_back();
-	test.assertEquals(4, result.records.length);
 	
+	// field information
+	test.assertEquals(2, result.fields.length);
+	test.assertEquals('LONG', result.fields[0].type.name);
+	test.assertEquals('nodejs_mysql', result.fields[0].db);
+	test.assertEquals('id', result.fields[0].name);
+	test.assertEquals('id', result.fields[0].org_name);
+	test.assertEquals('t', result.fields[0].table);
+	test.assertEquals('t', result.fields[0].org_table);
+	test.assertEquals(11, result.fields[0].length);
+	
+	test.assertEquals('VAR_STRING', result.fields[1].type.name);
+	test.assertEquals('nodejs_mysql', result.fields[1].db);
+	test.assertEquals('str', result.fields[1].name);
+	test.assertEquals('str', result.fields[1].org_name);
+	test.assertEquals('t', result.fields[1].table);
+	test.assertEquals('t', result.fields[1].org_table);
+	test.assertEquals(10, result.fields[1].length);
+	
+	// result data
+	test.assertEquals(4, result.records.length);
 	test.assertEquals(1, result.records[0][0]);
 	test.assertEquals('abc', result.records[0][1]); // string
 	test.assertEquals(-2, result.records[1][0]);
@@ -59,6 +80,7 @@ var test_result1 = function() {
 	
 	conn_close(conn, promise);
     });
+    
     return promise;
 };
 all_tests.push(test_result1);

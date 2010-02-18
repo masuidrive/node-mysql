@@ -58,7 +58,16 @@ var test_result1 = function() {
 	test.assertEquals('t', result.fields[0].table);
 	test.assertEquals('t', result.fields[0].org_table);
 	test.assertEquals(11, result.fields[0].length);
-	
+	test.assertEquals(0, result.fields[0].decimals);
+	test.assertEquals(undefined, result.fields[0].defaultValue);
+/* TODO
+	test.assertEquals(mysql.constants.field.NUM_FLAG
+			  | mysql.constants.field.PRI_KEY_FLAG
+			  | mysql.constants.field.NOT_NULL_FLAG
+			  | mysql.constants.field.UNIQUE_FLAG
+			  | mysql.constants.field.PART_KEY_FLAG,
+			  result.fields[0].flags);
+*/
 	test.assertEquals('VAR_STRING', result.fields[1].type.name);
 	test.assertEquals('nodejs_mysql', result.fields[1].db);
 	test.assertEquals('str', result.fields[1].name);
@@ -66,6 +75,9 @@ var test_result1 = function() {
 	test.assertEquals('t', result.fields[1].table);
 	test.assertEquals('t', result.fields[1].org_table);
 	test.assertEquals(10, result.fields[1].length);
+	test.assertEquals(0, result.fields[1].decimals);
+	test.assertEquals(0, result.fields[1].flags);
+	test.assertEquals(undefined, result.fields[0].defaultValue);
 	
 	// result data
 	test.assertEquals(4, result.records.length);
@@ -93,7 +105,6 @@ var test_result1 = function() {
 	test.assertEquals('id', result.fields[0].org_name);
 	test.assertEquals('ttt', result.fields[0].table);
 	test.assertEquals('t', result.fields[0].org_table);
-	test.assertEquals(11, result.fields[0].length);
 	
 	// result data
 	test.assertEquals(4, result.records.length);
@@ -112,53 +123,23 @@ all_tests.push(test_result1);
 helper.run(all_tests);
 
 /*
-var result;
-JSpec.describe('Mysql::Result', function(){
-    before(function(){
-	conn = new mysql.createConnection(config.mysql.hostname, 
-					  config.mysql.username,
-					  config.mysql.password,
-					  config.mysql.database);
-	conn.query('create temporary table t (id int, str char(10), primary key (id))');
-	conn.query("insert into t values (1,'abc'),(2,'defg'),(3,'hi'),(4,null)");
-	result = undefined;
-	conn.query('select * from t').addCallback(function(res) {
-	    result = res;
-	});
-    });
-    
-    after(function(){
-	conn.close();
-    });
-    
-    it('get records', function(){
-      result.records.size.should.equal(4);
-    });
-});
-/*
-    @res.fetch_row.should == ['1', 'abc']
-    @res.fetch_row.should == ['2', 'defg']
-    @res.fetch_row.should == ['3', 'hi']
-    @res.data_seek 1
-    @res.fetch_row.should == ['2', 'defg']
-  });
 
   it('#fetch_field return current field', function(){
     f = @res.fetch_field
     f.name.should == 'id'
     f.table.should == 't'
     f.def.should == nil
-    f.type.should == Mysql::Field::TYPE_LONG
+    f.type.should == mysql_cons.TYPE_LONG
     f.length.should == 11
     f.max_length == 1
-    f.flags.should == Mysql::Field::NUM_FLAG|Mysql::Field::PRI_KEY_FLAG|Mysql::Field::PART_KEY_FLAG|Mysql::Field::NOT_NULL_FLAG
+    f.flags.should == mysql.constants.NUM_FLAG|mysql.constants.PRI_KEY_FLAG|mysql.constants.PART_KEY_FLAG|mysql.constants.NOT_NULL_FLAG
     f.decimals.should == 0
 
     f = @res.fetch_field
     f.name.should == 'str'
     f.table.should == 't'
     f.def.should == nil
-    f.type.should == Mysql::Field::TYPE_STRING
+    f.type.should == mysql.constants.TYPE_STRING
     f.length.should == 10
     f.max_length == 4
     f.flags.should == 0
@@ -312,8 +293,8 @@ JSpec.describe('Mysql::Field', function(){
   });
 
   it('#type is type of field as Integer', function(){
-    @res.fetch_field.type.should == Mysql::Field::TYPE_LONG
-    @res.fetch_field.type.should == Mysql::Field::TYPE_STRING
+    @res.fetch_field.type.should == mysql.constants.TYPE_LONG
+    @res.fetch_field.type.should == mysql.constants.TYPE_STRING
   });
 
   it('#length is length of field', function(){
@@ -327,7 +308,7 @@ JSpec.describe('Mysql::Field', function(){
   });
 
   it('#flags is flag of field as Integer', function(){
-    @res.fetch_field.flags.should == Mysql::Field::NUM_FLAG|Mysql::Field::PRI_KEY_FLAG|Mysql::Field::PART_KEY_FLAG|Mysql::Field::NOT_NULL_FLAG
+    @res.fetch_field.flags.should == mysql.constants.NUM_FLAG|mysql.constants.PRI_KEY_FLAG|mysql.constants.PART_KEY_FLAG|mysql.constants.NOT_NULL_FLAG
     @res.fetch_field.flags.should == 0
   });
 
@@ -340,17 +321,17 @@ JSpec.describe('Mysql::Field', function(){
       'name'       => 'id',
       'table'      => 't',
       'def'        => nil,
-      'type'       => Mysql::Field::TYPE_LONG,
+      'type'       => mysql.constants.TYPE_LONG,
       'length'     => 11,
       'max_length' => 1,
-      'flags'      => Mysql::Field::NUM_FLAG|Mysql::Field::PRI_KEY_FLAG|Mysql::Field::PART_KEY_FLAG|Mysql::Field::NOT_NULL_FLAG,
+      'flags'      => mysql.constants.NUM_FLAG|mysql.constants.PRI_KEY_FLAG|mysql.constants.PART_KEY_FLAG|mysql.constants.NOT_NULL_FLAG,
       'decimals'   => 0,
     }
     @res.fetch_field.hash.should == {
       'name'       => 'str',
       'table'      => 't',
       'def'        => nil,
-      'type'       => Mysql::Field::TYPE_STRING,
+      'type'       => mysql.constants.TYPE_STRING,
       'length'     => 10,
       'max_length' => 4,
       'flags'      => 0,

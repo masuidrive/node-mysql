@@ -86,6 +86,36 @@ var test_result1 = function() {
 	test.assertEquals('', result.records[2][1]); // blank string
 	test.assertEquals(4, result.records[3][0]);
 	test.assertEquals(null, result.records[3][1]); // null string
+	
+	// result hash
+	var res = result.toHash(result.records[0]);
+	test.assertEquals(res['t.id'], 1);
+	test.assertEquals(res['t.str'], 'abc');
+	var res = result.toHash(result.records[1]);
+	test.assertEquals(res['t.id'], 2);
+	test.assertEquals(res['t.str'], '0');
+	var res = result.toHash(result.records[2]);
+	test.assertEquals(res['t.id'], 3);
+	test.assertEquals(res['t.str'], '');
+	var res = result.toHash(result.records[3]);
+	test.assertEquals(res['t.id'], 4);
+	test.assertEquals(res['t.str'], undefined);
+
+	// result hash fieldname without table
+	result.fieldname_with_table = false
+	var res = result.toHash(result.records[0]);
+	test.assertEquals(res['id'], 1);
+	test.assertEquals(res['str'], 'abc');
+	var res = result.toHash(result.records[1]);
+	test.assertEquals(res['id'], 2);
+	test.assertEquals(res['str'], '0');
+	var res = result.toHash(result.records[2]);
+	test.assertEquals(res['id'], 3);
+	test.assertEquals(res['str'], '');
+	var res = result.toHash(result.records[3]);
+	test.assertEquals(res['id'], 4);
+	test.assertEquals(res['str'], undefined);
+
     });
 
     // table & column alias
@@ -109,6 +139,29 @@ var test_result1 = function() {
 	test.assertEquals(3, result.records[2][0]);
 	test.assertEquals(4, result.records[3][0]);
 	
+	// result hash
+	var res = result.toHash(result.records[0]);
+	test.assertEquals(res['ttt.pkey'], 1);
+	test.assertEquals(res['ttt.pkey'], 1);
+	var res = result.toHash(result.records[1]);
+	test.assertEquals(res['ttt.pkey'], 2);
+	var res = result.toHash(result.records[2]);
+	test.assertEquals(res['ttt.pkey'], 3);
+	var res = result.toHash(result.records[3]);
+	test.assertEquals(res['ttt.pkey'], 4);
+
+	// result hash fieldname without table
+	result.fieldname_with_table = false
+	var res = result.toHash(result.records[0]);
+	test.assertEquals(res['pkey'], 1);
+	var res = result.toHash(result.records[1]);
+	test.assertEquals(res['pkey'], 2);
+	var res = result.toHash(result.records[2]);
+	test.assertEquals(res['pkey'], 3);
+	var res = result.toHash(result.records[3]);
+	test.assertEquals(res['pkey'], 4);
+
+	// end
 	conn_close(conn, promise);
     });
 

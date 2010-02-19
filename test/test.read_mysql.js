@@ -64,6 +64,9 @@ var test_result1 = function() {
 			  | mysql.constants.field.PART_KEY_FLAG
 			  | mysql.constants.field.NOT_NULL_FLAG,
 			  result.fields[0].flags);
+	test.assertEquals(true, result.fields[0].is_num());
+	test.assertEquals(true, result.fields[0].is_not_null());
+	test.assertEquals(true, result.fields[0].is_pri_key());
 	
 	test.assertEquals('VAR_STRING', result.fields[1].type.name);
 	test.assertEquals('nodejs_mysql', result.fields[1].db);
@@ -73,8 +76,11 @@ var test_result1 = function() {
 	test.assertEquals('t', result.fields[1].org_table);
 	test.assertEquals(10, result.fields[1].length);
 	test.assertEquals(0, result.fields[1].decimals);
-	test.assertEquals(0, result.fields[1].flags);
 	test.assertEquals(undefined, result.fields[0].defaultValue);
+	test.assertEquals(0, result.fields[1].flags);
+	test.assertEquals(false, result.fields[1].is_num());
+	test.assertEquals(false, result.fields[1].is_not_null());
+	test.assertEquals(false, result.fields[1].is_pri_key());
 	
 	// result data
 	test.assertEquals(4, result.records.length);
@@ -172,146 +178,6 @@ all_tests.push(test_result1);
 helper.run(all_tests);
 
 /*
-
-  it('#fetch_field return current field', function(){
-    f = @res.fetch_field
-    f.name.should == 'id'
-    f.table.should == 't'
-    f.def.should == nil
-    f.type.should == mysql_cons.TYPE_LONG
-    f.length.should == 11
-    f.max_length == 1
-    f.flags.should == mysql.constants.NUM_FLAG|mysql.constants.PRI_KEY_FLAG|mysql.constants.PART_KEY_FLAG|mysql.constants.NOT_NULL_FLAG
-    f.decimals.should == 0
-
-    f = @res.fetch_field
-    f.name.should == 'str'
-    f.table.should == 't'
-    f.def.should == nil
-    f.type.should == mysql.constants.TYPE_STRING
-    f.length.should == 10
-    f.max_length == 4
-    f.flags.should == 0
-    f.decimals.should == 0
-
-    @res.fetch_field.should == nil
-  });
-
-  it('#fetch_fields returns array of fields', function(){
-    ret = @res.fetch_fields
-    ret.size.should == 2
-    ret[0].name.should == 'id'
-    ret[1].name.should == 'str'
-  });
-
-  it('#fetch_field_direct returns field', function(){
-    f = @res.fetch_field_direct 0
-    f.name.should == 'id'
-    f = @res.fetch_field_direct 1
-    f.name.should == 'str'
-    proc{@res.fetch_field_direct -1}.should raise_error Mysql::ClientError, 'invalid argument: -1'
-    proc{@res.fetch_field_direct 2}.should raise_error Mysql::ClientError, 'invalid argument: 2'
-  });
-
-  it('#fetch_lengths returns array of length of field data', function(){
-    @res.fetch_lengths.should == nil
-    @res.fetch_row
-    @res.fetch_lengths.should == [1, 3]
-    @res.fetch_row
-    @res.fetch_lengths.should == [1, 4]
-    @res.fetch_row
-    @res.fetch_lengths.should == [1, 2]
-    @res.fetch_row
-    @res.fetch_lengths.should == [1, 0]
-    @res.fetch_row
-    @res.fetch_lengths.should == nil
-  });
-
-  it('#fetch_row returns one record as array for current record', function(){
-    @res.fetch_row.should == ['1', 'abc']
-    @res.fetch_row.should == ['2', 'defg']
-    @res.fetch_row.should == ['3', 'hi']
-    @res.fetch_row.should == ['4', nil]
-    @res.fetch_row.should == nil
-  });
-
-  it('#fetch_hash returns one record as hash for current record', function(){
-    @res.fetch_hash.should == {'id'=>'1', 'str'=>'abc'}
-    @res.fetch_hash.should == {'id'=>'2', 'str'=>'defg'}
-    @res.fetch_hash.should == {'id'=>'3', 'str'=>'hi'}
-    @res.fetch_hash.should == {'id'=>'4', 'str'=>nil}
-    @res.fetch_hash.should == nil
-  });
-
-  it('#fetch_hash(true) returns with table name', function(){
-    @res.fetch_hash(true).should == {'t.id'=>'1', 't.str'=>'abc'}
-    @res.fetch_hash(true).should == {'t.id'=>'2', 't.str'=>'defg'}
-    @res.fetch_hash(true).should == {'t.id'=>'3', 't.str'=>'hi'}
-    @res.fetch_hash(true).should == {'t.id'=>'4', 't.str'=>nil}
-    @res.fetch_hash(true).should == nil
-  });
-
-  it('#num_fields returns number of fields', function(){
-    @res.num_fields.should == 2
-  });
-
-  it('#num_rows returns number of records', function(){
-    @res.num_rows.should == 4
-  });
-
-  it('#each iterate block with a record', function(){
-    expect = [["1","abc"], ["2","defg"], ["3","hi"], ["4",nil]]
-    @res.each, function(){ |a|
-      a.should == expect.shift
-    });
-  });
-
-  it('#each_hash iterate block with a hash', function(){
-    expect = [{"id"=>"1","str"=>"abc"}, {"id"=>"2","str"=>"defg"}, {"id"=>"3","str"=>"hi"}, {"id"=>"4","str"=>nil}]
-    @res.each_hash, function(){ |a|
-      a.should == expect.shift
-    });
-  });
-
-  it('#each_hash(true): hash key has table name', function(){
-    expect = [{"t.id"=>"1","t.str"=>"abc"}, {"t.id"=>"2","t.str"=>"defg"}, {"t.id"=>"3","t.str"=>"hi"}, {"t.id"=>"4","t.str"=>nil}]
-    @res.each_hash(true), function(){ |a|
-      a.should == expect.shift
-    });
-  });
-
-  it('#row_tell returns position of current record, #row_seek set position of current record', function(){
-    @res.fetch_row.should == ['1', 'abc']
-    pos = @res.row_tell
-    @res.fetch_row.should == ['2', 'defg']
-    @res.fetch_row.should == ['3', 'hi']
-    @res.row_seek pos
-    @res.fetch_row.should == ['2', 'defg']
-  });
-
-  it('#field_tell returns position of current field, #field_seek set position of current field', function(){
-    @res.field_tell.should == 0
-    @res.fetch_field
-    @res.field_tell.should == 1
-    @res.fetch_field
-    @res.field_tell.should == 2
-    @res.field_seek 1
-    @res.field_tell.should == 1
-  });
-
-  it('#free returns nil', function(){
-    @res.free.should == nil
-  });
-
-  it('#num_fields returns number of fields', function(){
-    @res.num_fields.should == 2
-  });
-
-  it('#num_rows returns number of records', function(){
-    @res.num_rows.should == 4
-  });
-});
-
 /*
 JSpec.describe('Mysql::Field', function(){
   before(function(){

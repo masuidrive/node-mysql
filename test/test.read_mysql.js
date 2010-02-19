@@ -60,14 +60,11 @@ var test_result1 = function() {
 	test.assertEquals(11, result.fields[0].length);
 	test.assertEquals(0, result.fields[0].decimals);
 	test.assertEquals(undefined, result.fields[0].defaultValue);
-/* TODO
-	test.assertEquals(mysql.constants.field.NUM_FLAG
-			  | mysql.constants.field.PRI_KEY_FLAG
-			  | mysql.constants.field.NOT_NULL_FLAG
-			  | mysql.constants.field.UNIQUE_FLAG
-			  | mysql.constants.field.PART_KEY_FLAG,
+	test.assertEquals(mysql.constants.field.PRI_KEY_FLAG
+			  | mysql.constants.field.PART_KEY_FLAG
+			  | mysql.constants.field.NOT_NULL_FLAG,
 			  result.fields[0].flags);
-*/
+	
 	test.assertEquals('VAR_STRING', result.fields[1].type.name);
 	test.assertEquals('nodejs_mysql', result.fields[1].db);
 	test.assertEquals('str', result.fields[1].name);
@@ -89,7 +86,6 @@ var test_result1 = function() {
 	test.assertEquals('', result.records[2][1]); // blank string
 	test.assertEquals(4, result.records[3][0]);
 	test.assertEquals(null, result.records[3][1]); // null string
-	
     });
 
     // table & column alias

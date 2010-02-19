@@ -77,3 +77,4 @@ pack/unpack from php.js
 * [http://phpjs.org/functions/pack:880](http://phpjs.org/functions/pack:880)
 * Author: Tim de Koning (http://www.kingsquare.nl)
 * License: BSD
+

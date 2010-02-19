@@ -37,7 +37,7 @@ I'll work for error/timeout handling, prepared statements, more and more tests.
 
 # Requirements
 
-* [node.js](http://nodejs.org/) > v0.1.28 or trunk
+* [node.js](http://nodejs.org/) >= 0.1.29
 
 
 Optional:

@@ -31,7 +31,7 @@ var test_createConnection = function() {
     });
     return promise;
 };
-all_tests.push(test_createConnection);
+//all_tests.push(test_createConnection);
 
 var test_result1 = function() {
     var promise = new events.Promise();
@@ -121,7 +121,6 @@ var test_result1 = function() {
 	var res = result.toHash(result.records[3]);
 	test.assertEquals(res['id'], 4);
 	test.assertEquals(res['str'], undefined);
-
     });
 
     // table & column alias
@@ -137,6 +136,7 @@ var test_result1 = function() {
 	test.assertEquals('id', result.fields[0].org_name);
 	test.assertEquals('ttt', result.fields[0].table);
 	test.assertEquals('t', result.fields[0].org_table);
+	test.assertEquals(undefined, result.fields[0].defaultValue);
 	
 	// result data
 	test.assertEquals(4, result.records.length);
@@ -147,7 +147,6 @@ var test_result1 = function() {
 	
 	// result hash
 	var res = result.toHash(result.records[0]);
-	test.assertEquals(res['ttt.pkey'], 1);
 	test.assertEquals(res['ttt.pkey'], 1);
 	var res = result.toHash(result.records[1]);
 	test.assertEquals(res['ttt.pkey'], 2);
@@ -166,8 +165,7 @@ var test_result1 = function() {
 	test.assertEquals(res['pkey'], 3);
 	var res = result.toHash(result.records[3]);
 	test.assertEquals(res['pkey'], 4);
-
-	// end
+	
 	conn_close(conn, promise);
     });
 
@@ -175,106 +173,110 @@ var test_result1 = function() {
 };
 all_tests.push(test_result1);
 
+
+var test_result2 = function() {
+    var promise = new events.Promise();
+    var conn = new mysql.Connection(config.mysql.hostname, 
+					  config.mysql.username,
+					  config.mysql.password,
+					  config.mysql.database);
+    helper.exceptClass(mysql.Connection, conn);
+    conn.connect();
+
+    
+    helper.expect_callback();
+    conn.query('SELECT 1.23').addCallback(function(result) {
+	helper.was_called_back();
+	
+	// field information
+	test.assertEquals(1, result.fields.length);
+	test.assertEquals('NEWDECIMAL', result.fields[0].type.name);
+	test.assertEquals('', result.fields[0].db);
+	test.assertEquals('1.23', result.fields[0].name);
+	test.assertEquals('', result.fields[0].org_name);
+	test.assertEquals('', result.fields[0].table);
+	test.assertEquals('', result.fields[0].org_table);
+	
+	// result data
+	test.assertEquals(1, result.records.length);
+	test.assertEquals(1.23, result.records[0][0]);
+	
+	// result hash
+	var res = result.toHash(result.records[0]);
+	test.assertEquals(res['1.23'], 1.23);
+
+	// result hash fieldname without table
+	result.fieldname_with_table = false
+	var res = result.toHash(result.records[0]);
+	test.assertEquals(res['1.23'], 1.23);
+    });
+    
+    // multi statement
+    helper.expect_callback();
+    //conn.query('SELECT 1,2')
+    conn.query('SELECT 1,2; SELECT 3,4,5')
+        .addCallback(function(result) {
+	    helper.was_called_back();
+	})
+        .addErrback(function(result) {
+	    helper.was_called_back();
+	});
+    
+    // multi statement
+    conn.set_server_option(mysql.constants.option.MULTI_STATEMENTS_ON);
+    helper.expect_callback();
+    //conn.query('SELECT 1,2; SELECT 3,4,5')
+    conn.query('SELECT 1,2')
+        .addCallback(function(result) {
+	    helper.was_called_back();
+	    conn_close(conn, promise);
+	})
+        .addErrback(function(result) {
+	});    
+    return promise;
+}
+all_tests.push(test_result2);
+
+
 helper.run(all_tests);
 
 /*
-/*
-JSpec.describe('Mysql::Field', function(){
-  before(function(){
+
+JSpec.describe('multiple statement query:', function(){
+  before :all, function(){
     conn = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
-    conn.query('create temporary table t (id int default 0, str char(10), primary key (id))');
-    conn.query("insert into t values (1,'abc'),(2,'defg'),(3,'hi'),(4,null)");
-    @res = conn.query('select * from t');
+    conn.set_server_option(Mysql::OPTION_MULTI_STATEMENTS_ON)
+    @res = conn.query('select 1,2; select 3,4,5');
   });
-
-  after(function(){
-    conn.close if conn
+  it('Mysql#query returns results for first query', function(){
+    @res.entries.should == [['1','2']]
   });
-
-  it('#name is name of field', function(){
-    @res.fetch_field.name.should == 'id'
+  it('Mysql#more_results is true', function(){
+    conn.more_results.should == true
   });
-
-  it('#table is name of table for field', function(){
-    @res.fetch_field.table.should == 't'
+  it('Mysql#more_results? is true', function(){
+    conn.more_results?.should == true
   });
-
-  it('#def for result set is null', function(){
-    @res.fetch_field.def.should == nil
+  it('Mysql#next_result is true', function(){
+    conn.next_result.should == true
   });
-
-  it('#def for field information is default value', function(){
-    conn.list_fields('t').fetch_field.def.should == '0'
+  it('Mysql#store_result returns results for next query', function(){
+    res = conn.store_result
+    res.entries.should == [['3','4','5']]
   });
-
-  it('#type is type of field as Integer', function(){
-    @res.fetch_field.type.should == mysql.constants.TYPE_LONG
-    @res.fetch_field.type.should == mysql.constants.TYPE_STRING
+  it('Mysql#more_results is false', function(){
+    conn.more_results.should == false
   });
-
-  it('#length is length of field', function(){
-    @res.fetch_field.length.should == 11
-    @res.fetch_field.length.should == 10
+  it('Mysql#more_results? is false', function(){
+    conn.more_results?.should == false
   });
-
-  it('#max_length is maximum length of field value', function(){
-    @res.fetch_field.max_length.should == 1
-    @res.fetch_field.max_length.should == 4
-  });
-
-  it('#flags is flag of field as Integer', function(){
-    @res.fetch_field.flags.should == mysql.constants.NUM_FLAG|mysql.constants.PRI_KEY_FLAG|mysql.constants.PART_KEY_FLAG|mysql.constants.NOT_NULL_FLAG
-    @res.fetch_field.flags.should == 0
-  });
-
-  it('#decimals is number of decimal digits', function(){
-    conn.query('select 1.23').fetch_field.decimals.should == 2
-  });
-
-  it('#hash return field as hash', function(){
-    @res.fetch_field.hash.should == {
-      'name'       => 'id',
-      'table'      => 't',
-      'def'        => nil,
-      'type'       => mysql.constants.TYPE_LONG,
-      'length'     => 11,
-      'max_length' => 1,
-      'flags'      => mysql.constants.NUM_FLAG|mysql.constants.PRI_KEY_FLAG|mysql.constants.PART_KEY_FLAG|mysql.constants.NOT_NULL_FLAG,
-      'decimals'   => 0,
-    }
-    @res.fetch_field.hash.should == {
-      'name'       => 'str',
-      'table'      => 't',
-      'def'        => nil,
-      'type'       => mysql.constants.TYPE_STRING,
-      'length'     => 10,
-      'max_length' => 4,
-      'flags'      => 0,
-      'decimals'   => 0,
-    }
-  });
-
-  it('#inspect returns "#<Mysql::Field:name>"', function(){
-    @res.fetch_field.inspect.should == '#<Mysql::Field:id>'
-    @res.fetch_field.inspect.should == '#<Mysql::Field:str>'
-  });
-
-  it('#is_num? returns true if the field is numeric', function(){
-    @res.fetch_field.is_num?.should == true
-    @res.fetch_field.is_num?.should == false
-  });
-
-  it('#is_not_null? returns true if the field is not null', function(){
-    @res.fetch_field.is_not_null?.should == true
-    @res.fetch_field.is_not_null?.should == false
-  });
-
-  it('#is_pri_key? returns true if the field is primary key', function(){
-    @res.fetch_field.is_pri_key?.should == true
-    @res.fetch_field.is_pri_key?.should == false
+  it('Mysql#next_result is false', function(){
+    conn.next_result.should == false
   });
 });
+*/
 
+/*
 JSpec.describe('create Mysql::Stmt object:', function(){
   before(function(){
     conn = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)

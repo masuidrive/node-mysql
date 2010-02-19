@@ -31,7 +31,7 @@ var test_createConnection = function() {
     });
     return promise;
 };
-//all_tests.push(test_createConnection);
+all_tests.push(["createConnection", test_createConnection]);
 
 var test_result1 = function() {
     var promise = new events.Promise();
@@ -171,7 +171,7 @@ var test_result1 = function() {
 
     return promise;
 };
-all_tests.push(test_result1);
+all_tests.push(["test_result1", test_result1]);
 
 
 var test_result2 = function() {
@@ -211,13 +211,9 @@ var test_result2 = function() {
 	test.assertEquals(res['1.23'], 1.23);
     });
     
-    // multi statement
+    // multi statement without MULTI_STATEMENTS_ON
     helper.expect_callback();
-    //conn.query('SELECT 1,2')
     conn.query('SELECT 1,2; SELECT 3,4,5')
-        .addCallback(function(result) {
-	    helper.was_called_back();
-	})
         .addErrback(function(result) {
 	    helper.was_called_back();
 	});
@@ -225,17 +221,20 @@ var test_result2 = function() {
     // multi statement
     conn.set_server_option(mysql.constants.option.MULTI_STATEMENTS_ON);
     helper.expect_callback();
-    //conn.query('SELECT 1,2; SELECT 3,4,5')
-    conn.query('SELECT 1,2')
-        .addCallback(function(result) {
+    conn.query('SELECT 1,2; SELECT 3,4,5')
+        .addCallback(function(res) {
 	    helper.was_called_back();
-	    conn_close(conn, promise);
+	    // sys.puts(conn.has_more_results()?'t':'f');
+	    // TODO
+	    sys.puts(sys.inspect(res.records));
+	    conn.get_result().addCallback(function(r) {
+		sys.puts(sys.inspect(r.records));
+		conn_close(conn, promise);
+	    });
 	})
-        .addErrback(function(result) {
-	});    
     return promise;
 }
-all_tests.push(test_result2);
+all_tests.push(["test_result2", test_result2]);
 
 
 helper.run(all_tests);

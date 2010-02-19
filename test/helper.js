@@ -18,14 +18,14 @@ var run = function(testfuncs){
     pending_callbacks = 0;
     var testfunc = testfuncs.shift();
     if(!testfunc) return true;
-    testfunc()
+    testfunc[1]()
 	.addCallback(function() {
 	    test.assertEquals(0, pending_callbacks);
-	    sys.puts("Success");
+	    sys.puts("Success: "+testfunc[0]);
 	    run(testfuncs);
 	})
 	.addErrback(function() {
-	    sys.puts("Failed");
+	    sys.puts("Failed: "+testfunc[0]);
 	    run(testfuncs);
 	});
 }

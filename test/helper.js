@@ -18,16 +18,22 @@ var run = function(testfuncs){
     pending_callbacks = 0;
     var testfunc = testfuncs.shift();
     if(!testfunc) return true;
-    testfunc[1]()
-	.addCallback(function() {
-	    test.assertEquals(0, pending_callbacks);
-	    sys.puts("Success: "+testfunc[0]);
-	    run(testfuncs);
-	})
-	.addErrback(function() {
-	    sys.puts("Failed: "+testfunc[0]);
-	    run(testfuncs);
-	});
+    var promise = testfunc[1]();
+    if(promise) {
+	promise
+	    .addCallback(function() {
+		test.assertEquals(0, pending_callbacks);
+		sys.puts("Success: "+testfunc[0]);
+		run(testfuncs);
+	    })
+	    .addErrback(function() {
+		sys.puts("Failed: "+testfunc[0]);
+		run(testfuncs);
+	    });
+    }
+    else {
+	sys.puts("Tested: "+testfunc[0])
+    }
 }
 exports.run = run;
 

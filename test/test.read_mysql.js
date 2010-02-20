@@ -33,6 +33,7 @@ var test_createConnection = function() {
 };
 all_tests.push(["createConnection", test_createConnection]);
 
+
 var test_result1 = function() {
     var promise = new events.Promise();
     var conn = new mysql.Connection(config.mysql.hostname, 
@@ -174,7 +175,7 @@ var test_result1 = function() {
 all_tests.push(["test_result1", test_result1]);
 
 
-var test_result2 = function() {
+var test_query_without_table = function() {
     var promise = new events.Promise();
     var conn = new mysql.Connection(config.mysql.hostname, 
 					  config.mysql.username,
@@ -214,7 +215,7 @@ var test_result2 = function() {
     
     return promise;
 }
-all_tests.push(["test_result2", test_result2]);
+all_tests.push(["test_query_without_table", test_query_without_table]);
 
 
 var test_multi_statements = function() {
@@ -263,43 +264,14 @@ var test_multi_statements = function() {
 all_tests.push(["test_multi_statements", test_multi_statements]);
 
 
+var test_quote = function() {
+    test.assertEquals("abc\\'def\\\"ghi\\0jkl%mno", mysql.quote("abc'def\"ghi\0jkl%mno"));
+};
+all_tests.push(["test_quote", test_quote]);
+
+
 helper.run(all_tests);
 
-/*
-
-JSpec.describe('multiple statement query:', function(){
-  before :all, function(){
-    conn = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
-    conn.set_server_option(Mysql::OPTION_MULTI_STATEMENTS_ON)
-    @res = conn.query('select 1,2; select 3,4,5');
-  });
-  it('Mysql#query returns results for first query', function(){
-    @res.entries.should == [['1','2']]
-  });
-  it('Mysql#more_results is true', function(){
-    conn.more_results.should == true
-  });
-  it('Mysql#more_results? is true', function(){
-    conn.more_results?.should == true
-  });
-  it('Mysql#next_result is true', function(){
-    conn.next_result.should == true
-  });
-  it('Mysql#store_result returns results for next query', function(){
-    res = conn.store_result
-    res.entries.should == [['3','4','5']]
-  });
-  it('Mysql#more_results is false', function(){
-    conn.more_results.should == false
-  });
-  it('Mysql#more_results? is false', function(){
-    conn.more_results?.should == false
-  });
-  it('Mysql#next_result is false', function(){
-    conn.next_result.should == false
-  });
-});
-*/
 
 /*
 JSpec.describe('create Mysql::Stmt object:', function(){

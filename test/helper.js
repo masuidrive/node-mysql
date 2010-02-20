@@ -33,6 +33,7 @@ var run = function(testfuncs){
     }
     else {
 	sys.puts("Tested: "+testfunc[0])
+	run(testfuncs);
     }
 }
 exports.run = run;

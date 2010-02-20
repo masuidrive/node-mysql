@@ -247,7 +247,9 @@ var test_multi_statements = function() {
 	    test.assertEquals(2, result.records[0][1]);
 	    
 	    test.assertEquals(true, conn.has_more_results());
+	    helper.expect_callback();
 	    conn.next_result().addCallback(function(result) {
+		helper.was_called_back();
 		// result 2nd query data
 		test.assertEquals(1, result.records.length);
 		test.assertEquals(3, result.records[0][0]);
@@ -270,9 +272,61 @@ var test_quote = function() {
 all_tests.push(["test_quote", test_quote]);
 
 
+var test_prepared_statements = function() {
+    var promise = new events.Promise();
+    var conn = new mysql.Connection(config.mysql.hostname, 
+	                            config.mysql.username,
+				    config.mysql.password,
+			            config.mysql.database);
+    helper.exceptClass(mysql.Connection, conn);
+    conn.connect();
+    conn.query('CREATE TEMPORARY TABLE t (id INTEGER, str VARCHAR(10), PRIMARY KEY (id))');
+    
+    helper.expect_callback();
+    conn.prepare('INSERT INTO t VALUE (?,?)')
+        .addCallback(function(stmt) {
+	    helper.was_called_back();
+	    stmt.execute(1,'abc')
+                .addCallback(scope(this,function(result) {
+		    // verify inserted data
+		    helper.expect_callback();
+		    conn.query('SELECT * FROM t ORDER BY id').addCallback(function(result) {
+			helper.was_called_back();
+			
+			// result data
+			test.assertEquals(1, result.records.length);
+			test.assertEquals(1, result.records[0][0]);
+			test.assertEquals('abc', result.records[0][1]);
+
+			helper.expect_callback();
+			stmt.execute(2,'def')
+			    .addCallback(scope(this,function(result) {
+				helper.was_called_back();
+				// verify inserted data
+				helper.expect_callback();
+				conn.query('SELECT * FROM t ORDER BY id').addCallback(function(result) {
+				    helper.was_called_back();
+				    
+				    // result data
+				    test.assertEquals(2, result.records.length);
+				    test.assertEquals(1, result.records[0][0]);
+				    test.assertEquals('abc', result.records[0][1]);
+				    test.assertEquals(2, result.records[1][0]);
+				    test.assertEquals('def', result.records[1][1]);
+				    
+				    conn_close(conn, promise);
+				});
+			    }));
+		    });
+		}));
+	});
+    
+    return promise;
+}
+all_tests.push(["test_prepared_statements", test_prepared_statements]);
+
+
 helper.run(all_tests);
-
-
 /*
 JSpec.describe('create Mysql::Stmt object:', function(){
   before(function(){
@@ -293,19 +347,6 @@ JSpec.describe('create Mysql::Stmt object:', function(){
 });
 
 
-
-/*
-JSpec.describe('Mysql.escape_string', function(){
-  it('escape special character', function(){
-    Mysql.escape_string("abc'def\"ghi\0jkl%mno").should == "abc\\'def\\\"ghi\\0jkl%mno"
-  });
-});
-
-JSpec.describe('Mysql.quote', function(){
-  it('escape special character', function(){
-    Mysql.quote("abc'def\"ghi\0jkl%mno").should == "abc\\'def\\\"ghi\\0jkl%mno"
-  });
-});
 
 JSpec.describe('Mysql#options', function(){
   before(function(){

@@ -314,7 +314,28 @@ var test_prepared_statements = function() {
 				    test.assertEquals(2, result.records[1][0]);
 				    test.assertEquals('def', result.records[1][1]);
 				    
-				    conn_close(conn, promise);
+				    helper.expect_callback();
+				    stmt.execute(3,'def')
+				        .addCallback(scope(this,function(result) {
+					    helper.was_called_back();
+					    
+					    helper.expect_callback();
+					    conn.prepare('SELECT * FROM t WHERE str=? ORDER BY id').addCallback(function(stmt2) {
+						helper.was_called_back();
+						helper.expect_callback();
+						stmt2.execute('def').addCallback(scope(this,function(result) {
+						    helper.was_called_back();
+						    // result data
+						    test.assertEquals(2, result.records.length);
+						    test.assertEquals(2, result.records[0][0]);
+						    test.assertEquals('def', result.records[0][1]);
+						    test.assertEquals(3, result.records[1][0]);
+						    test.assertEquals('def', result.records[1][1]);
+						    
+						    conn_close(conn, promise);
+						}));
+					    });
+					}));
 				});
 			    }));
 		    });

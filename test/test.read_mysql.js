@@ -183,7 +183,6 @@ var test_result2 = function() {
     helper.exceptClass(mysql.Connection, conn);
     conn.connect();
 
-    
     helper.expect_callback();
     conn.query('SELECT 1.23').addCallback(function(result) {
 	helper.was_called_back();
@@ -196,6 +195,7 @@ var test_result2 = function() {
 	test.assertEquals('', result.fields[0].org_name);
 	test.assertEquals('', result.fields[0].table);
 	test.assertEquals('', result.fields[0].org_table);
+	test.assertEquals(false, conn.has_more_results());
 	
 	// result data
 	test.assertEquals(1, result.records.length);
@@ -209,32 +209,58 @@ var test_result2 = function() {
 	result.fieldname_with_table = false
 	var res = result.toHash(result.records[0]);
 	test.assertEquals(res['1.23'], 1.23);
+	conn_close(conn, promise);
     });
     
+    return promise;
+}
+all_tests.push(["test_result2", test_result2]);
+
+
+var test_multi_statements = function() {
+    var promise = new events.Promise();
+    var conn = new mysql.Connection(config.mysql.hostname, 
+					  config.mysql.username,
+					  config.mysql.password,
+					  config.mysql.database);
+    helper.exceptClass(mysql.Connection, conn);
+    conn.connect();
+
     // multi statement without MULTI_STATEMENTS_ON
     helper.expect_callback();
     conn.query('SELECT 1,2; SELECT 3,4,5')
         .addErrback(function(result) {
 	    helper.was_called_back();
 	});
-    
+
     // multi statement
     conn.set_server_option(mysql.constants.option.MULTI_STATEMENTS_ON);
     helper.expect_callback();
     conn.query('SELECT 1,2; SELECT 3,4,5')
-        .addCallback(function(res) {
+        .addCallback(function(result) {
 	    helper.was_called_back();
-	    // sys.puts(conn.has_more_results()?'t':'f');
-	    // TODO
-	    sys.puts(sys.inspect(res.records));
-	    conn.get_result().addCallback(function(r) {
-		sys.puts(sys.inspect(r.records));
+
+	    // result 1st query data
+	    test.assertEquals(1, result.records.length);
+	    test.assertEquals(1, result.records[0][0]);
+	    test.assertEquals(2, result.records[0][1]);
+	    
+	    test.assertEquals(true, conn.has_more_results());
+	    conn.next_result().addCallback(function(result) {
+		// result 2nd query data
+		test.assertEquals(1, result.records.length);
+		test.assertEquals(3, result.records[0][0]);
+		test.assertEquals(4, result.records[0][1]);
+		test.assertEquals(5, result.records[0][2]);
+
+		// no more data
+		test.assertEquals(false, conn.has_more_results());
 		conn_close(conn, promise);
 	    });
 	})
     return promise;
 }
-all_tests.push(["test_result2", test_result2]);
+all_tests.push(["test_multi_statements", test_multi_statements]);
 
 
 helper.run(all_tests);

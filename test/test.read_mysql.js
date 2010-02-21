@@ -348,24 +348,7 @@ all_tests.push(["test_prepared_statements", test_prepared_statements]);
 
 
 helper.run(all_tests);
-/*
-JSpec.describe('create Mysql::Stmt object:', function(){
-  before(function(){
-    conn = Mysql.new(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PORT, MYSQL_SOCKET)
-  });
-
-  after(function(){
-    conn.close if conn
-  });
-
-  it('Mysql#stmt_init(returns Mysql::Stmt object', function(){
-    conn.stmt_init.should be_kind_of Mysql::Stmt
-  });
-
-  it('Mysq;#prepare returns Mysql::Stmt object', function(){
-    conn.prepare("select 1").should be_kind_of Mysql::Stmt
-  });
-});
+    /*
 
 
 
@@ -479,11 +462,6 @@ JSpec.describe('Mysql', function(){
     });
   });
 
-#  JSpec.describe('#create_db', function(){
-#  });
-
-#  JSpec.describe('#drop_db', function(){
-#  });
 
   JSpec.describe('#errno', function(){
     it('default value is 0', function(){

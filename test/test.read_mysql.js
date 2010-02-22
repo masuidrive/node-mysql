@@ -17,6 +17,7 @@ var conn_close = function(conn, promise) {
 }
 
 var all_tests = [];
+
 var test_createConnection = function() {
     var promise = new events.Promise();
     var conn = new mysql.Connection(config.mysql.hostname, 
@@ -33,7 +34,6 @@ var test_createConnection = function() {
 };
 all_tests.push(["createConnection", test_createConnection]);
 
-
 var test_result1 = function() {
     var promise = new events.Promise();
     var conn = new mysql.Connection(config.mysql.hostname, 
@@ -42,7 +42,7 @@ var test_result1 = function() {
 					  config.mysql.database);
     helper.exceptClass(mysql.Connection, conn);
     conn.connect();
-    conn.query('CREATE TEMPORARY TABLE t (id INTEGER, str VARCHAR(10), PRIMARY KEY (id))');
+    conn.query('CREATE TEMPORARY TABLE t (id INTEGER, str VARCHAR(254), PRIMARY KEY (id))');
     conn.query("INSERT INTO t VALUES (1,'abc'),(2,'0'),(3,''),(4,null)");
     
     // execute SELECT query
@@ -75,7 +75,6 @@ var test_result1 = function() {
 	test.assertEquals('str', result.fields[1].org_name);
 	test.assertEquals('t', result.fields[1].table);
 	test.assertEquals('t', result.fields[1].org_table);
-	test.assertEquals(10, result.fields[1].length);
 	test.assertEquals(0, result.fields[1].decimals);
 	test.assertEquals(undefined, result.fields[0].defaultValue);
 	test.assertEquals(0, result.fields[1].flags);
@@ -297,7 +296,7 @@ var test_prepared_statements = function() {
 			test.assertEquals(1, result.records.length);
 			test.assertEquals(1, result.records[0][0]);
 			test.assertEquals('abc', result.records[0][1]);
-
+			
 			helper.expect_callback();
 			stmt.execute(2,'def')
 			    .addCallback(scope(this,function(result) {
@@ -356,7 +355,7 @@ var test_prepared_statements_type = function(sql_type, value, assert_value_or_ca
 					config.mysql.database);
 	helper.exceptClass(mysql.Connection, conn);
 	conn.connect();
-	conn.query('CREATE TEMPORARY TABLE t (id INTEGER, val '+sql_type+', PRIMARY KEY (id))');
+	conn.query("CREATE TEMPORARY TABLE t (id INTEGER, val "+sql_type+", PRIMARY KEY (id)) CHARACTER SET 'utf8'");
 	
 	helper.expect_callback();
 	conn.prepare('INSERT INTO t VALUE (?,?)')
@@ -366,23 +365,48 @@ var test_prepared_statements_type = function(sql_type, value, assert_value_or_ca
                     .addCallback(scope(this,function(result) {
 			// verify inserted data
 			helper.expect_callback();
-			conn.query('SELECT * FROM t ORDER BY id').addCallback(function(result) {
-			    helper.was_called_back();
-			    
-			    // result data
-			    test.assertEquals(1, result.records.length);
-			    test.assertEquals(1, result.records[0][0]);
-			    if(typeof(assert_value_or_callback)=='undefined') {
-				test.assertEquals(value, result.records[0][1]);
-			    }
-			    else if(typeof(assert_value_or_callback)=='function') {
-				assert_value_or_callback(result.records[0][1]);
-			    }
-			    else {
-				test.assertEquals(assert_value_or_callback, result.records[0][1]);
-			    }
-			    conn_close(conn, promise);
-			});
+			conn.query('SELECT * FROM t ORDER BY id')
+			    .addCallback(function(result) {
+				helper.was_called_back();
+				
+				// result data
+				test.assertEquals(1, result.records.length);
+				test.assertEquals(1, result.records[0][0]);
+				if(typeof(assert_value_or_callback)=='undefined') {
+				    test.assertEquals(value, result.records[0][1]);
+				}
+				else if(typeof(assert_value_or_callback)=='function') {
+				    assert_value_or_callback(result.records[0][1]);
+				}
+				else {
+				    test.assertEquals(assert_value_or_callback, result.records[0][1]);
+				}
+
+				helper.expect_callback();
+				conn.prepare('SELECT * FROM t WHERE id=?')
+				    .addCallback(function(stmt) {
+					helper.was_called_back();
+					helper.expect_callback();
+					stmt.execute(1)
+					    .addCallback(function(result) {
+						helper.was_called_back();
+						test.assertEquals(1, result.records.length);
+						test.assertEquals(1, result.records[0][0]);
+						if(typeof(assert_value_or_callback)=='undefined') {
+						    test.assertEquals(value, result.records[0][1]);
+						}
+						else if(typeof(assert_value_or_callback)=='function') {
+						    assert_value_or_callback(result.records[0][1]);
+						}
+						else {
+						    test.assertEquals(assert_value_or_callback, result.records[0][1]);
+						}
+						conn_close(conn, promise);
+					    })
+				    });
+			    });
+
+			// conn.query('SELECT * FROM t ORDER BY id'); // TODO
 		    }));
 	    });
 	return promise;
@@ -398,11 +422,12 @@ var test_statements_type = function(sql_type, value, assert_value_or_callback) {
 					config.mysql.database);
 	helper.exceptClass(mysql.Connection, conn);
 	conn.connect();
-	conn.query('CREATE TEMPORARY TABLE t (id INTEGER, val '+sql_type+', PRIMARY KEY (id))');
+	conn.query("CREATE TEMPORARY TABLE t (id INTEGER, val "+sql_type+", PRIMARY KEY (id)) CHARACTER SET 'utf8'");
 	
 	helper.expect_callback();
 	conn.query("INSERT INTO t VALUE (1,'"+mysql.quote(value)+"')")
-            .addCallback(scope(this,function(result) {
+            .addCallback(function(result) {
+		helper.was_called_back();
 		// verify inserted data
 		helper.expect_callback();
 		conn.query('SELECT * FROM t ORDER BY id').addCallback(function(result) {
@@ -422,16 +447,18 @@ var test_statements_type = function(sql_type, value, assert_value_or_callback) {
 		    }
 		    conn_close(conn, promise);
 		});
-	    }));
+	    });
 	return promise;
     };
 }
 
-//all_tests.push(["Statements UTF-8 text", test_statements_type('TEXT', "\u3042\u3044\u3046\u3048\u304A")]);
+all_tests.push(["Statements ASCII text", test_statements_type('TEXT', "abcdef")]);
+all_tests.push(["Statements UTF-8 text", test_statements_type('TEXT', "\u3042\u3044\u3046\u3048\u304A")]);
+
 
 // prepared statement string types
 all_tests.push(["Prepared statements text", test_prepared_statements_type('TEXT', 'abcdef')]);
-//all_tests.push(["Prepared statements UTF-8 text", test_prepared_statements_type('TEXT', "\u3042\u3044\u3046\u3048\u304A")]);
+all_tests.push(["Prepared statements UTF-8 text", test_prepared_statements_type('TEXT', "\u3042\u3044\u3046\u3048\u304A")]);
 all_tests.push(["Prepared statements varchar", test_prepared_statements_type('VARCHAR(10)', 'abcdef')]);
 all_tests.push(["Prepared statements varchar", test_prepared_statements_type('VARCHAR(5)', 'abcdef', 'abcde')]);
 all_tests.push(["Prepared statements varchar", test_prepared_statements_type('CHAR(10)', 'abcdef')]);

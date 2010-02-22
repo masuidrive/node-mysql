@@ -347,6 +347,108 @@ var test_prepared_statements = function() {
 all_tests.push(["test_prepared_statements", test_prepared_statements]);
 
 
+var test_prepared_statements_type = function(sql_type, value, assert_value_or_callback) {
+    return function() {
+	var promise = new events.Promise();
+	var conn = new mysql.Connection(config.mysql.hostname, 
+					config.mysql.username,
+					config.mysql.password,
+					config.mysql.database);
+	helper.exceptClass(mysql.Connection, conn);
+	conn.connect();
+	conn.query('CREATE TEMPORARY TABLE t (id INTEGER, val '+sql_type+', PRIMARY KEY (id))');
+	
+	helper.expect_callback();
+	conn.prepare('INSERT INTO t VALUE (?,?)')
+            .addCallback(function(stmt) {
+		helper.was_called_back();
+		stmt.execute(1, value)
+                    .addCallback(scope(this,function(result) {
+			// verify inserted data
+			helper.expect_callback();
+			conn.query('SELECT * FROM t ORDER BY id').addCallback(function(result) {
+			    helper.was_called_back();
+			    
+			    // result data
+			    test.assertEquals(1, result.records.length);
+			    test.assertEquals(1, result.records[0][0]);
+			    if(typeof(assert_value_or_callback)=='undefined') {
+				test.assertEquals(value, result.records[0][1]);
+			    }
+			    else if(typeof(assert_value_or_callback)=='function') {
+				assert_value_or_callback(result.records[0][1]);
+			    }
+			    else {
+				test.assertEquals(assert_value_or_callback, result.records[0][1]);
+			    }
+			    conn_close(conn, promise);
+			});
+		    }));
+	    });
+	return promise;
+    };
+}
+
+var test_statements_type = function(sql_type, value, assert_value_or_callback) {
+    return function() {
+	var promise = new events.Promise();
+	var conn = new mysql.Connection(config.mysql.hostname, 
+					config.mysql.username,
+					config.mysql.password,
+					config.mysql.database);
+	helper.exceptClass(mysql.Connection, conn);
+	conn.connect();
+	conn.query('CREATE TEMPORARY TABLE t (id INTEGER, val '+sql_type+', PRIMARY KEY (id))');
+	
+	helper.expect_callback();
+	conn.query("INSERT INTO t VALUE (1,'"+mysql.quote(value)+"')")
+            .addCallback(scope(this,function(result) {
+		// verify inserted data
+		helper.expect_callback();
+		conn.query('SELECT * FROM t ORDER BY id').addCallback(function(result) {
+		    helper.was_called_back();
+		    
+		    // result data
+		    test.assertEquals(1, result.records.length);
+		    test.assertEquals(1, result.records[0][0]);
+		    if(typeof(assert_value_or_callback)=='undefined') {
+			test.assertEquals(value, result.records[0][1]);
+		    }
+		    else if(typeof(assert_value_or_callback)=='function') {
+			assert_value_or_callback(result.records[0][1]);
+		    }
+		    else {
+			test.assertEquals(assert_value_or_callback, result.records[0][1]);
+		    }
+		    conn_close(conn, promise);
+		});
+	    }));
+	return promise;
+    };
+}
+
+//all_tests.push(["Statements UTF-8 text", test_statements_type('TEXT', "\u3042\u3044\u3046\u3048\u304A")]);
+
+// prepared statement string types
+all_tests.push(["Prepared statements text", test_prepared_statements_type('TEXT', 'abcdef')]);
+//all_tests.push(["Prepared statements UTF-8 text", test_prepared_statements_type('TEXT', "\u3042\u3044\u3046\u3048\u304A")]);
+all_tests.push(["Prepared statements varchar", test_prepared_statements_type('VARCHAR(10)', 'abcdef')]);
+all_tests.push(["Prepared statements varchar", test_prepared_statements_type('VARCHAR(5)', 'abcdef', 'abcde')]);
+all_tests.push(["Prepared statements varchar", test_prepared_statements_type('CHAR(10)', 'abcdef')]);
+all_tests.push(["Prepared statements blob", test_prepared_statements_type('BLOB', 'abcdef')]);
+all_tests.push(["Prepared statements enum", test_prepared_statements_type('ENUM("a","b","c")', 'a')]);
+all_tests.push(["Prepared statements enum", test_prepared_statements_type('ENUM("a","b","c")', 'z', function(){return undefined})]);
+all_tests.push(["Prepared statements set", test_prepared_statements_type('SET("a","b","c")', 'a,b')]);
+all_tests.push(["Prepared statements set", test_prepared_statements_type('SET("a","b","c")', 'a,b,z', 'a,b')]);
+
+// prepared statement number types
+all_tests.push(["Prepared statements integer", test_prepared_statements_type('INTEGER', 12345)]);
+all_tests.push(["Prepared statements negative integer", test_prepared_statements_type('INTEGER', -12345)]);
+all_tests.push(["Prepared statements unsinged integer", test_prepared_statements_type('INTEGER UNSIGNED', -12345, 0)]);
+//all_tests.push(["Prepared statements oversize integer", test_prepared_statements_type('INTEGER', 119223372036854775808)]);
+all_tests.push(["Prepared statements integer", test_prepared_statements_type('INTEGER', 12345)]);
+
+
 helper.run(all_tests);
     /*
 

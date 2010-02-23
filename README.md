@@ -4,11 +4,11 @@ node-mysql is pure Javascript MySQL network driver for [node.js](http://nodejs.o
 
 
 # Current status
-It could not for development and production.
+It isn't for application development and production.
 
-Now It can execute query and get results. It don't have error handling.
+Now It can use for this driver developer only :-p
 
-I'll work for error/timeout handling, prepared statements, more and more tests.
+I'll work for error/timeout handling, more and more tests.
 
 
 # Example
@@ -37,7 +37,7 @@ I'll work for error/timeout handling, prepared statements, more and more tests.
 
 # Requirements
 
-* [node.js](http://nodejs.org/) >= 0.1.29
+* [node.js](http://nodejs.org/) == 0.1.29
 
 
 Optional:

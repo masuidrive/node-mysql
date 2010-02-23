@@ -459,19 +459,40 @@ all_tests.push(["Prepared statements text", test_prepared_statements_type('TEXT'
 all_tests.push(["Prepared statements UTF-8 text", test_prepared_statements_type('TEXT', "\u3042\u3044\u3046\u3048\u304A")]);
 
 all_tests.push(["Prepared statements varchar", test_prepared_statements_type('VARCHAR(10)', 'abcdef')]);
+all_tests.push(["Prepared statements varchar", test_prepared_statements_type('VARCHAR(10)', "\u3042\u3044\u3046\u3048\u304A")]);
 all_tests.push(["Prepared statements varchar", test_prepared_statements_type('VARCHAR(5)', 'abcdef', 'abcde')]);
-all_tests.push(["Prepared statements varchar", test_prepared_statements_type('CHAR(10)', 'abcdef')]);
+all_tests.push(["Prepared statements char", test_prepared_statements_type('CHAR(10)', 'abcdef')]);
+all_tests.push(["Prepared statements char", test_prepared_statements_type('CHAR(10)', "\u3042\u3044\u3046\u3048\u304A")]);
+
 all_tests.push(["Prepared statements blob", test_prepared_statements_type('BLOB', 'abcdef')]);
 all_tests.push(["Prepared statements enum", test_prepared_statements_type('ENUM("a","b","c")', 'a')]);
 all_tests.push(["Prepared statements enum", test_prepared_statements_type('ENUM("a","b","c")', 'z', function(){return undefined})]);
+all_tests.push(["Prepared statements enum", test_prepared_statements_type('ENUM("a","b","c","\u3042")', "\u3042")]);
 all_tests.push(["Prepared statements set", test_prepared_statements_type('SET("a","b","c")', 'a,b')]);
 all_tests.push(["Prepared statements set", test_prepared_statements_type('SET("a","b","c")', 'a,b,z', 'a,b')]);
+all_tests.push(["Prepared statements set", test_prepared_statements_type('SET("a","b","c","\u3042")', 'a,b,\u3042', 'a,b,\u3042')]);
 
 // prepared statement number types
 all_tests.push(["Prepared statements integer", test_prepared_statements_type('INTEGER', 12345)]);
 all_tests.push(["Prepared statements negative integer", test_prepared_statements_type('INTEGER', -12345)]);
 all_tests.push(["Prepared statements unsinged integer", test_prepared_statements_type('INTEGER UNSIGNED', -12345, 0)]);
 all_tests.push(["Prepared statements integer", test_prepared_statements_type('INTEGER', 12345)]);
+all_tests.push(["Prepared statements big int", test_prepared_statements_type('BIGINT', 12345)]);
+all_tests.push(["Prepared statements medium int", test_prepared_statements_type('MEDIUMINT', 12345)]);
+all_tests.push(["Prepared statements small int", test_prepared_statements_type('SMALLINT', 12345)]);
+all_tests.push(["Prepared statements tiny int", test_prepared_statements_type('TINYINT', 123)]);
+all_tests.push(["Prepared statements tiny int", test_prepared_statements_type('TINYINT', 12345, 127)]);
+all_tests.push(["Prepared statements decimal", test_prepared_statements_type('DECIMAL', 1234)]);
+all_tests.push(["Prepared statements decimal", test_prepared_statements_type('DECIMAL', -1234)]);
+all_tests.push(["Prepared statements float", test_prepared_statements_type('FLOAT', 1.5)]);
+all_tests.push(["Prepared statements float", test_prepared_statements_type('FLOAT', 1234.0)]);
+all_tests.push(["Prepared statements float", test_prepared_statements_type('FLOAT', 1234.5)]);
+all_tests.push(["Prepared statements float", test_prepared_statements_type('FLOAT', -1234.5)]);
+all_tests.push(["Prepared statements real", test_prepared_statements_type('REAL', 1234.5)]);
+all_tests.push(["Prepared statements real", test_prepared_statements_type('REAL', -1234.5)]);
+all_tests.push(["Prepared statements double", test_prepared_statements_type('DOUBLE', 1234.567)]);
+all_tests.push(["Prepared statements double", test_prepared_statements_type('DOUBLE', 1234567.89)]);
+all_tests.push(["Prepared statements double", test_prepared_statements_type('DOUBLE', -1234567.89)]);
 
 
 helper.run(all_tests);

@@ -356,6 +356,7 @@ var test_statements_type = function(sql_type, value, assert_value_or_callback) {
 	conn.connect();
 	conn.query("CREATE TEMPORARY TABLE t (id INTEGER, val "+sql_type+", PRIMARY KEY (id)) CHARACTER SET 'utf8' COLLATE 'utf8_general_ci' ENGINE=InnoDB");
 	
+	// regular query
 	helper.expect_callback();
 	conn.query("INSERT INTO t VALUE (1,'"+mysql.quote(value)+"')")
             .addCallback(function(result) {
@@ -395,6 +396,7 @@ var test_prepared_statements_type = function(sql_type, value, assert_value_or_ca
 	conn.connect();
 	conn.query("CREATE TEMPORARY TABLE t (id INTEGER, val "+sql_type+", PRIMARY KEY (id)) CHARACTER SET 'utf8' COLLATE 'utf8_general_ci'");
 	
+	// prepared statement
 	helper.expect_callback();
 	conn.prepare('INSERT INTO t VALUE (?,?)')
             .addCallback(function(stmt) {
@@ -415,7 +417,7 @@ var test_prepared_statements_type = function(sql_type, value, assert_value_or_ca
 				    test.assertEquals(value, result.records[0][1]);
 				}
 				else if(typeof(assert_value_or_callback)=='function') {
-				    assert_value_or_callback(result.records[0][1]);
+				    test.assertEquals(true, assert_value_or_callback(result.records[0][1]));
 				}
 				else {
 				    test.assertEquals(assert_value_or_callback, result.records[0][1]);
@@ -435,7 +437,7 @@ var test_prepared_statements_type = function(sql_type, value, assert_value_or_ca
 						    test.assertEquals(value, result.records[0][1]);
 						}
 						else if(typeof(assert_value_or_callback)=='function') {
-						    assert_value_or_callback(result.records[0][1]);
+						    test.assertEquals(true, assert_value_or_callback(result.records[0][1]));
 						}
 						else {
 						    test.assertEquals(assert_value_or_callback, result.records[0][1]);
@@ -451,48 +453,68 @@ var test_prepared_statements_type = function(sql_type, value, assert_value_or_ca
     };
 }
 
-all_tests.push(["Statements ASCII text", test_statements_type('VARCHAR(254)', "abcdef")]);
-all_tests.push(["Statements UTF-8 text", test_statements_type('VARCHAR(254)', "\u3042\u3044\u3046\u3048\u304A")]);
+var test_type = function(test_suite, sql_type, value, text_value, assert_value_or_callback) {
+    test_suite.push(["Type "+sql_type+": "+sys.inspect(text_value), function() {
+	var promise = new events.Promise();
+	test_statements_type(sql_type, text_value, assert_value_or_callback)()
+	    .addCallback(function() {
+		test_prepared_statements_type(sql_type, value, assert_value_or_callback)()
+		    .addCallback(function() {
+			promise.emitSuccess();
+		    });
+	    });
+	return promise;
+    }]);
+}
 
-// prepared statement string types
-all_tests.push(["Prepared statements text", test_prepared_statements_type('TEXT', 'abcdef')]);
-all_tests.push(["Prepared statements UTF-8 text", test_prepared_statements_type('TEXT', "\u3042\u3044\u3046\u3048\u304A")]);
+// String types
+test_type(all_tests, 'TEXT', 'abcdef', 'abcdef');
+test_type(all_tests, 'TEXT', "\u3042\u3044\u3046\u3048\u304A", "\u3042\u3044\u3046\u3048\u304A");
 
-all_tests.push(["Prepared statements varchar", test_prepared_statements_type('VARCHAR(10)', 'abcdef')]);
-all_tests.push(["Prepared statements varchar", test_prepared_statements_type('VARCHAR(10)', "\u3042\u3044\u3046\u3048\u304A")]);
-all_tests.push(["Prepared statements varchar", test_prepared_statements_type('VARCHAR(5)', 'abcdef', 'abcde')]);
-all_tests.push(["Prepared statements char", test_prepared_statements_type('CHAR(10)', 'abcdef')]);
-all_tests.push(["Prepared statements char", test_prepared_statements_type('CHAR(10)', "\u3042\u3044\u3046\u3048\u304A")]);
+test_type(all_tests, 'VARCHAR(10)', 'abcdef', 'abcdef');
+test_type(all_tests, 'VARCHAR(10)', "\u3042\u3044\u3046\u3048\u304A", "\u3042\u3044\u3046\u3048\u304A");
+test_type(all_tests, 'VARCHAR(5)', 'abcdef', 'abcdef', 'abcde');
+test_type(all_tests, 'CHAR(10)', 'abcdef', 'abcdef');
+test_type(all_tests, 'CHAR(10)', "\u3042\u3044\u3046\u3048\u304A", "\u3042\u3044\u3046\u3048\u304A");
 
-all_tests.push(["Prepared statements blob", test_prepared_statements_type('BLOB', 'abcdef')]);
-all_tests.push(["Prepared statements enum", test_prepared_statements_type('ENUM("a","b","c")', 'a')]);
-all_tests.push(["Prepared statements enum", test_prepared_statements_type('ENUM("a","b","c")', 'z', function(){return undefined})]);
-all_tests.push(["Prepared statements enum", test_prepared_statements_type('ENUM("a","b","c","\u3042")', "\u3042")]);
-all_tests.push(["Prepared statements set", test_prepared_statements_type('SET("a","b","c")', 'a,b')]);
-all_tests.push(["Prepared statements set", test_prepared_statements_type('SET("a","b","c")', 'a,b,z', 'a,b')]);
-all_tests.push(["Prepared statements set", test_prepared_statements_type('SET("a","b","c","\u3042")', 'a,b,\u3042', 'a,b,\u3042')]);
+test_type(all_tests, 'BLOB', 'abcdef', 'abcdef');
+test_type(all_tests, 'ENUM("a","b","c")', 'a', 'a');
+test_type(all_tests, 'ENUM("a","b","c")', 'z', 'z', '');
+test_type(all_tests, 'ENUM("a","b","c","\u3042")', "\u3042", "\u3042");
+test_type(all_tests, 'SET("a","b","c")', 'a,b', 'a,b');
+test_type(all_tests, 'SET("a","b","c")', 'a,b,z', 'a,b,z', 'a,b');
+test_type(all_tests, 'SET("a","b","c","\u3042")', 'a,b,\u3042', 'a,b,\u3042', 'a,b,\u3042');
 
-// prepared statement number types
-all_tests.push(["Prepared statements integer", test_prepared_statements_type('INTEGER', 12345)]);
-all_tests.push(["Prepared statements negative integer", test_prepared_statements_type('INTEGER', -12345)]);
-all_tests.push(["Prepared statements unsinged integer", test_prepared_statements_type('INTEGER UNSIGNED', -12345, 0)]);
-all_tests.push(["Prepared statements integer", test_prepared_statements_type('INTEGER', 12345)]);
-all_tests.push(["Prepared statements big int", test_prepared_statements_type('BIGINT', 12345)]);
-all_tests.push(["Prepared statements medium int", test_prepared_statements_type('MEDIUMINT', 12345)]);
-all_tests.push(["Prepared statements small int", test_prepared_statements_type('SMALLINT', 12345)]);
-all_tests.push(["Prepared statements tiny int", test_prepared_statements_type('TINYINT', 123)]);
-all_tests.push(["Prepared statements tiny int", test_prepared_statements_type('TINYINT', 12345, 127)]);
-all_tests.push(["Prepared statements decimal", test_prepared_statements_type('DECIMAL', 1234)]);
-all_tests.push(["Prepared statements decimal", test_prepared_statements_type('DECIMAL', -1234)]);
-all_tests.push(["Prepared statements float", test_prepared_statements_type('FLOAT', 1.5)]);
-all_tests.push(["Prepared statements float", test_prepared_statements_type('FLOAT', 1234.0)]);
-all_tests.push(["Prepared statements float", test_prepared_statements_type('FLOAT', 1234.5)]);
-all_tests.push(["Prepared statements float", test_prepared_statements_type('FLOAT', -1234.5)]);
-all_tests.push(["Prepared statements real", test_prepared_statements_type('REAL', 1234.5)]);
-all_tests.push(["Prepared statements real", test_prepared_statements_type('REAL', -1234.5)]);
-all_tests.push(["Prepared statements double", test_prepared_statements_type('DOUBLE', 1234.567)]);
-all_tests.push(["Prepared statements double", test_prepared_statements_type('DOUBLE', 1234567.89)]);
-all_tests.push(["Prepared statements double", test_prepared_statements_type('DOUBLE', -1234567.89)]);
+// Number types
+test_type(all_tests, 'INTEGER', 12345, "12345");
+test_type(all_tests, 'INTEGER', -12345, "-12345");
+test_type(all_tests, 'INTEGER UNSIGNED', -12345, "-12345", 0);
+test_type(all_tests, 'INTEGER', 12345, "12345");
+test_type(all_tests, 'BIGINT', 12345, "12345");
+test_type(all_tests, 'MEDIUMINT', 12345, "12345");
+test_type(all_tests, 'SMALLINT', 12345, "12345");
+test_type(all_tests, 'TINYINT', 123, "123");
+test_type(all_tests, 'TINYINT', 12345, "12345", 127);
+test_type(all_tests, 'DECIMAL', 1234, "1234");
+test_type(all_tests, 'DECIMAL', -1234, "-1234");
+test_type(all_tests, 'FLOAT', 1.5, "1.5");
+test_type(all_tests, 'FLOAT', 1234.0, "1234.0");
+test_type(all_tests, 'FLOAT', 1234.5, "1234.5");
+test_type(all_tests, 'FLOAT', -1234.5, "-1234.5");
+test_type(all_tests, 'REAL', 1234.5, "1234.5");
+test_type(all_tests, 'REAL', -1234.5, "-1234.5");
+test_type(all_tests, 'DOUBLE', 1234.567, "1234.567");
+test_type(all_tests, 'DOUBLE', 1234567.89, "1234567.89");
+test_type(all_tests, 'DOUBLE', -1234567.89, "-1234567.89");
+
+// Date types
+test_type(all_tests, 'DATE', new mysql.Time(1976,2,8), "1976-2-8", function(v){return v.year==1976 && v.month==2 && v.day==8});
+test_type(all_tests, 'DATE', new mysql.Time(0,0,0), "0-0-0", function(v){return v.year==0 && v.month==0 && v.day==0});
+test_type(all_tests, 'DATE', new mysql.Time(1976,2,8,12,34,56), "1976-2-8 12:34:56", function(v){return v.year==1976 && v.month==2 && v.day==8 && v.hour==0 && v.minute==0 && v.second==0;});
+test_type(all_tests, 'TIMESTAMP', new mysql.Time(1976,2,8,12,34,56), "1976-2-8 12:34:56", function(v){return v.year==1976 && v.month==2 && v.day==8 && v.hour==12 && v.minute==34 && v.second==56;});
+test_type(all_tests, 'DATETIME', new mysql.Time(1976,2,8,12,34,56), "1976-2-8 12:34:56", function(v){return v.year==1976 && v.month==2 && v.day==8 && v.hour==12 && v.minute==34 && v.second==56});
+test_type(all_tests, 'TIME', new mysql.Time(0,0,0,12,34,56), "12:34:56", function(v){return v.year==0 && v.month==0 && v.day==0 && v.hour==12 && v.minute==34 && v.second==56});
+test_type(all_tests, 'TIME', new mysql.Time(0,0,8,12,34,56), "8 12:34:56", function(v){return v.year==0 && v.month==0 && v.day==0 && v.hour==204 && v.minute==34 && v.second==56});
 
 
 helper.run(all_tests);

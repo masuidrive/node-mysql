@@ -3,7 +3,7 @@ var mysql = require('./lib/mysql');
 
 /*
 > mysql -u root
-CREATE DATABASE nodejs_mysql;
+CREATE DATABASE nodejs_mysql  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 GRANT ALL ON nodejs_mysql.* TO nodejs_mysql@localhost IDENTIFIED BY "nodejs_mysql";
 */
 var conn = new mysql.Connection('localhost','nodejs_mysql', 'nodejs_mysql', 'nodejs_mysql');

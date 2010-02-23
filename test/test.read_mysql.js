@@ -8,6 +8,7 @@ var helper = require('./helper');
 process.mixin(GLOBAL, helper);
 var config = require('./config');
 var mysql = require('../lib/mysql');
+var Promise = require('./lib/mysql/promise').Promise;
 
 var conn_close = function(conn, promise) {
     conn.addListener('close', function() {
@@ -19,7 +20,7 @@ var conn_close = function(conn, promise) {
 var all_tests = [];
 
 var test_createConnection = function() {
-    var promise = new events.Promise();
+    var promise = new Promise();
     var conn = new mysql.Connection(config.mysql.hostname, 
 				    config.mysql.username,
 				    config.mysql.password,
@@ -35,7 +36,7 @@ var test_createConnection = function() {
 all_tests.push(["createConnection", test_createConnection]);
 
 var test_result1 = function() {
-    var promise = new events.Promise();
+    var promise = new Promise();
     var conn = new mysql.Connection(config.mysql.hostname, 
 					  config.mysql.username,
 					  config.mysql.password,
@@ -175,7 +176,7 @@ all_tests.push(["test_result1", test_result1]);
 
 
 var test_query_without_table = function() {
-    var promise = new events.Promise();
+    var promise = new Promise();
     var conn = new mysql.Connection(config.mysql.hostname, 
 					  config.mysql.username,
 					  config.mysql.password,
@@ -218,7 +219,7 @@ all_tests.push(["test_query_without_table", test_query_without_table]);
 
 
 var test_multi_statements = function() {
-    var promise = new events.Promise();
+    var promise = new Promise();
     var conn = new mysql.Connection(config.mysql.hostname, 
 					  config.mysql.username,
 					  config.mysql.password,
@@ -272,7 +273,7 @@ all_tests.push(["test_quote", test_quote]);
 
 
 var test_prepared_statements = function() {
-    var promise = new events.Promise();
+    var promise = new Promise();
     var conn = new mysql.Connection(config.mysql.hostname, 
 	                            config.mysql.username,
 				    config.mysql.password,
@@ -347,7 +348,7 @@ all_tests.push(["test_prepared_statements", test_prepared_statements]);
 
 var test_statements_type = function(sql_type, value, assert_value_or_callback) {
     return function() {
-	var promise = new events.Promise();
+	var promise = new Promise();
 	var conn = new mysql.Connection(config.mysql.hostname, 
 					config.mysql.username,
 					config.mysql.password,
@@ -387,7 +388,7 @@ var test_statements_type = function(sql_type, value, assert_value_or_callback) {
 
 var test_prepared_statements_type = function(sql_type, value, assert_value_or_callback) {
     return function() {
-	var promise = new events.Promise();
+	var promise = new Promise();
 	var conn = new mysql.Connection(config.mysql.hostname, 
 					config.mysql.username,
 					config.mysql.password,
@@ -455,7 +456,7 @@ var test_prepared_statements_type = function(sql_type, value, assert_value_or_ca
 
 var test_type = function(test_suite, sql_type, value, text_value, assert_value_or_callback) {
     test_suite.push(["Type "+sql_type+": "+sys.inspect(text_value), function() {
-	var promise = new events.Promise();
+	var promise = new Promise();
 	test_statements_type(sql_type, text_value, assert_value_or_callback)()
 	    .addCallback(function() {
 		test_prepared_statements_type(sql_type, value, assert_value_or_callback)()

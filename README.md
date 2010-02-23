@@ -37,7 +37,7 @@ I'll work for error/timeout handling, more and more tests.
 
 # Requirements
 
-* [node.js](http://nodejs.org/) == 0.1.29
+* [node.js](http://nodejs.org/) > 0.1.29
 
 
 Optional:
@@ -65,6 +65,12 @@ MySQL protocol encode/decode from tmtm's ruby-mysql.
 * [http://github.com/tmtm/ruby-mysql](http://github.com/tmtm/ruby-mysql)
 * Copyright: Copyright (c) 2009-2010 TOMITA Masahiro 
 * License: Ruby's
+
+Promise library
+
+* [http://nodejs.org/](http://nodejs.org/)
+* Copyright 2009, 2010 Ryan Lienhart Dahl. All rights reserved.
+* License: MIT
 
 SHA1 library from Takanori Ishikawa.
 

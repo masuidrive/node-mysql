@@ -8,7 +8,7 @@ var helper = require('./helper');
 process.mixin(GLOBAL, helper);
 var config = require('./config');
 var mysql = require('../lib/mysql');
-var Promise = require('./lib/mysql/promise').Promise;
+var Promise = require('./lib/mysql/node-promise').Promise;
 
 var conn_close = function(conn, promise) {
     conn.addListener('close', function() {

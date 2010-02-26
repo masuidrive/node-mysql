@@ -37,7 +37,7 @@ I'll work for error/timeout handling, more and more tests.
 
 # Requirements
 
-* [node.js](http://nodejs.org/) > 0.1.29
+* [node.js](http://nodejs.org/) > 0.1.29 (Supported 0.1.30)
 
 
 Optional:

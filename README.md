@@ -11,6 +11,10 @@ Now It can use for this driver developer only :-p
 I'll work for error/timeout handling, more and more tests.
 
 
+# Plan
+I'll release to developer at middle March 2010.
+
+
 # Example
 
     var sys = require('sys');

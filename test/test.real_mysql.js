@@ -219,6 +219,65 @@ var test_query_without_table = function() {
 all_tests.push(["test_query_without_table", test_query_without_table]);
 
 
+var test_placeholder = function() {
+    var promise = new Promise();
+    var conn = new mysql.Connection(config.mysql.hostname, 
+					  config.mysql.username,
+					  config.mysql.password,
+					  config.mysql.database);
+    helper.exceptClass(mysql.Connection, conn);
+    conn.connect();
+    
+    var sql = conn.extract_placeholder(['SELECT ?,?,?,?,?,?,?,?', 123, 1.23, 'abc', true, false, new mysql.Time(1976,2,8), new mysql.Time(0,0,0,12,34,56), new mysql.Time(1976,2,8,12,34,56)]);
+    test.assertEquals("SELECT 123,1.23,'abc',true,false,'1976-2-8 0:0:0','12:34:56','1976-2-8 12:34:56'", sql);
+    
+    helper.expect_callback();
+    conn.query(['SELECT ?,?', 123],
+	       function(result) {
+		   test.fail();
+	       }, 
+	       function(error) {
+		   helper.was_called_back();
+		   test.assertEquals('parameter count mismatch', error.message);
+	       });
+
+    helper.expect_callback();
+    conn.query(['SELECT ?', 123, 456],
+	       function(result) {
+		   test.fail();
+	       }, 
+	       function(error) {
+		   helper.was_called_back();
+		   test.assertEquals('parameter count mismatch', error.message);
+	       });
+
+    helper.expect_callback();
+    conn.query(['SELECT ?,?,?,?,?', 123, 1.23, 'abc', true, false],
+	       function(result) {
+		   helper.was_called_back();
+		   
+		   // field information
+		   test.assertEquals(5, result.fields.length);
+		   
+		   // result data
+		   test.assertEquals(1, result.records.length);
+		   test.assertEquals(123, result.records[0][0]);
+		   test.assertEquals(1.23, result.records[0][1]);
+		   test.assertEquals('abc', result.records[0][2]);
+		   test.assertEquals(1, result.records[0][3]);
+		   test.assertEquals(0, result.records[0][4]);
+		   conn.close();
+		   promise.emitSuccess();
+	       }, 
+	       function(error) {
+		   sys.puts(sys.inspect(error));
+		   test.fail();
+	       });
+    return promise
+}
+all_tests.push(["test_placeholder", test_placeholder]);
+
+
 var test_multi_statements = function() {
     var promise = new Promise();
     var conn = new mysql.Connection(config.mysql.hostname, 

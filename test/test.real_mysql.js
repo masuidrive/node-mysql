@@ -8,17 +8,9 @@ var helper = require('./helper');
 process.mixin(GLOBAL, helper);
 var config = require('./config');
 var mysql = require('../lib/mysql');
-var Promise = require('./lib/mysql/node-promise').Promise;
-
-var conn_close = function(conn, promise) {
-    conn.addListener('close', function() {
-	promise.emitSuccess();
-    });
-    conn.close();
-}
+var Promise = require('../lib/mysql/node-promise').Promise;
 
 var all_tests = [];
-
 var test_createConnection = function() {
     var promise = new Promise();
     var conn = new mysql.Connection(config.mysql.hostname, 
@@ -27,11 +19,12 @@ var test_createConnection = function() {
 				    config.mysql.database);
     helper.exceptClass(mysql.Connection, conn);
     helper.expect_callback();
-    conn.connect().addCallback(function() {
+    conn.connect(function() {
 	helper.was_called_back();
-	conn_close(conn, promise);
+	conn.close();
+	promise.emitSuccess();
     });
-    return promise;
+    return promise
 };
 all_tests.push(["createConnection", test_createConnection]);
 
@@ -48,7 +41,7 @@ var test_result1 = function() {
     
     // execute SELECT query
     helper.expect_callback();
-    conn.query('SELECT * FROM t ORDER BY id').addCallback(function(result) {
+    conn.query('SELECT * FROM t ORDER BY id', function(result) { // Success
 	helper.was_called_back();
 	
 	// field information
@@ -126,7 +119,7 @@ var test_result1 = function() {
 
     // table & column alias
     helper.expect_callback();
-    conn.query('SELECT id as pkey FROM t as ttt ORDER BY pkey').addCallback(function(result) {
+    conn.query('SELECT id as pkey FROM t as ttt ORDER BY pkey', function(result) {
 	helper.was_called_back();
 	
 	// field information
@@ -167,10 +160,14 @@ var test_result1 = function() {
 	var res = result.toHash(result.records[3]);
 	test.assertEquals(res['pkey'], 4);
 	
-	conn_close(conn, promise);
+	conn.close();
+	promise.emitSuccess();
+    },
+    function(error) { 
+         test.fail();
     });
 
-    return promise;
+    return promise
 };
 all_tests.push(["test_result1", test_result1]);
 
@@ -185,35 +182,39 @@ var test_query_without_table = function() {
     conn.connect();
 
     helper.expect_callback();
-    conn.query('SELECT 1.23').addCallback(function(result) {
-	helper.was_called_back();
-	
-	// field information
-	test.assertEquals(1, result.fields.length);
-	test.assertEquals('NEWDECIMAL', result.fields[0].type.name);
-	test.assertEquals('', result.fields[0].db);
-	test.assertEquals('1.23', result.fields[0].name);
-	test.assertEquals('', result.fields[0].org_name);
-	test.assertEquals('', result.fields[0].table);
-	test.assertEquals('', result.fields[0].org_table);
-	test.assertEquals(false, conn.has_more_results());
-	
-	// result data
-	test.assertEquals(1, result.records.length);
-	test.assertEquals(1.23, result.records[0][0]);
-	
-	// result hash
-	var res = result.toHash(result.records[0]);
-	test.assertEquals(res['1.23'], 1.23);
-
-	// result hash fieldname without table
-	result.fieldname_with_table = false
-	var res = result.toHash(result.records[0]);
-	test.assertEquals(res['1.23'], 1.23);
-	conn_close(conn, promise);
-    });
-    
-    return promise;
+    conn.query('SELECT 1.23',
+	       function(result) {
+		   helper.was_called_back();
+		   
+		   // field information
+		   test.assertEquals(1, result.fields.length);
+		   test.assertEquals('NEWDECIMAL', result.fields[0].type.name);
+		   test.assertEquals('', result.fields[0].db);
+		   test.assertEquals('1.23', result.fields[0].name);
+		   test.assertEquals('', result.fields[0].org_name);
+		   test.assertEquals('', result.fields[0].table);
+		   test.assertEquals('', result.fields[0].org_table);
+		   test.assertEquals(false, conn.has_more_results());
+		   
+		   // result data
+		   test.assertEquals(1, result.records.length);
+		   test.assertEquals(1.23, result.records[0][0]);
+		   
+		   // result hash
+		   var res = result.toHash(result.records[0]);
+		   test.assertEquals(res['1.23'], 1.23);
+		   
+		   // result hash fieldname without table
+		   result.fieldname_with_table = false
+		   var res = result.toHash(result.records[0]);
+		   test.assertEquals(res['1.23'], 1.23);
+		   conn.close();
+		   promise.emitSuccess();
+	       }, 
+	       function(error) { 
+		   test.fail();
+	       });
+    return promise
 }
 all_tests.push(["test_query_without_table", test_query_without_table]);
 
@@ -229,44 +230,55 @@ var test_multi_statements = function() {
 
     // multi statement without MULTI_STATEMENTS_ON
     helper.expect_callback();
-    conn.query('SELECT 1,2; SELECT 3,4,5')
-        .addErrback(function(result) {
-	    helper.was_called_back();
-	});
+    conn.query('SELECT 1,2; SELECT 3,4,5',
+	       function(result) { // success
+		   test.fail();
+	       },
+	       function(error) { // fail
+		   helper.was_called_back();
+	       });
 
     // multi statement
     conn.set_server_option(mysql.constants.option.MULTI_STATEMENTS_ON);
     helper.expect_callback();
-    conn.query('SELECT 1,2; SELECT 3,4,5')
-        .addCallback(function(result) {
-	    helper.was_called_back();
-
-	    // result 1st query data
-	    test.assertEquals(1, result.records.length);
-	    test.assertEquals(1, result.records[0][0]);
-	    test.assertEquals(2, result.records[0][1]);
-	    
-	    test.assertEquals(true, conn.has_more_results());
-	    helper.expect_callback();
-	    conn.next_result().addCallback(function(result) {
-		helper.was_called_back();
-		// result 2nd query data
-		test.assertEquals(1, result.records.length);
-		test.assertEquals(3, result.records[0][0]);
-		test.assertEquals(4, result.records[0][1]);
-		test.assertEquals(5, result.records[0][2]);
-
-		// no more data
-		test.assertEquals(false, conn.has_more_results());
-		conn_close(conn, promise);
-	    });
-	})
-    return promise;
+    conn.query('SELECT 1,2; SELECT 3,4,5',
+               function(result) {
+		   helper.was_called_back();
+		   
+		   // result 1st query data
+		   test.assertEquals(1, result.records.length);
+		   test.assertEquals(1, result.records[0][0]);
+		   test.assertEquals(2, result.records[0][1]);
+		   
+		   test.assertEquals(true, conn.has_more_results());
+		   helper.expect_callback();
+		   conn.next_result(
+		       function(result) {
+			   helper.was_called_back();
+			   // result 2nd query data
+			   test.assertEquals(1, result.records.length);
+			   test.assertEquals(3, result.records[0][0]);
+			   test.assertEquals(4, result.records[0][1]);
+			   test.assertEquals(5, result.records[0][2]);
+			   
+			   // no more data
+			   test.assertEquals(false, conn.has_more_results());
+			   conn.close();
+			   promise.emitSuccess();
+		       },
+		       function(error){
+			   test.fail();
+		       });
+	       },
+	       function(error) {
+		   test.fail();
+	       });
+    return promise
 }
 all_tests.push(["test_multi_statements", test_multi_statements]);
 
 
-var test_quote = function() {
+var test_quote = function(complete) {
     test.assertEquals("abc\\'def\\\"ghi\\0jkl%mno", mysql.quote("abc'def\"ghi\0jkl%mno"));
 };
 all_tests.push(["test_quote", test_quote]);
@@ -283,68 +295,73 @@ var test_prepared_statements = function() {
     conn.query("CREATE TEMPORARY TABLE t (id INTEGER, str VARCHAR(10), PRIMARY KEY (id)) CHARACTER SET 'utf8' COLLATE 'utf8_general_ci'");
     
     helper.expect_callback();
-    conn.prepare('INSERT INTO t VALUE (?,?)')
-        .addCallback(function(stmt) {
-	    helper.was_called_back();
-	    stmt.execute(1,'abc')
-                .addCallback(scope(this,function(result) {
+    conn.prepare('INSERT INTO t VALUE (?,?)', function(stmt) {
+	helper.was_called_back();
+	stmt.execute([1, 'abc'], scope(this, function(result) {
+	    // verify inserted data
+	    helper.expect_callback();
+	    conn.query('SELECT * FROM t ORDER BY id', function(result) {
+		helper.was_called_back();
+		
+		// result data
+		test.assertEquals(1, result.records.length);
+		test.assertEquals(1, result.records[0][0]);
+		test.assertEquals('abc', result.records[0][1]);
+		
+		helper.expect_callback();
+		stmt.execute([2,'def'], scope(this, function(result) {
+		    helper.was_called_back();
 		    // verify inserted data
 		    helper.expect_callback();
-		    conn.query('SELECT * FROM t ORDER BY id').addCallback(function(result) {
+		    conn.query('SELECT * FROM t ORDER BY id', function(result) {
 			helper.was_called_back();
 			
 			// result data
-			test.assertEquals(1, result.records.length);
+			test.assertEquals(2, result.records.length);
 			test.assertEquals(1, result.records[0][0]);
 			test.assertEquals('abc', result.records[0][1]);
+			test.assertEquals(2, result.records[1][0]);
+			test.assertEquals('def', result.records[1][1]);
 			
 			helper.expect_callback();
-			stmt.execute(2,'def')
-			    .addCallback(scope(this,function(result) {
+			stmt.execute([3,'def'], scope(this, function(result) {
+			    helper.was_called_back();
+			    
+			    helper.expect_callback();
+			    conn.prepare('SELECT * FROM t WHERE str=? ORDER BY id', function(stmt2) {
 				helper.was_called_back();
-				// verify inserted data
 				helper.expect_callback();
-				conn.query('SELECT * FROM t ORDER BY id').addCallback(function(result) {
+				stmt2.execute(['def'],  scope(this, function(result) {
 				    helper.was_called_back();
-				    
 				    // result data
 				    test.assertEquals(2, result.records.length);
-				    test.assertEquals(1, result.records[0][0]);
-				    test.assertEquals('abc', result.records[0][1]);
-				    test.assertEquals(2, result.records[1][0]);
+				    test.assertEquals(2, result.records[0][0]);
+				    test.assertEquals('def', result.records[0][1]);
+				    test.assertEquals(3, result.records[1][0]);
 				    test.assertEquals('def', result.records[1][1]);
 				    
-				    helper.expect_callback();
-				    stmt.execute(3,'def')
-				        .addCallback(scope(this,function(result) {
-					    helper.was_called_back();
-					    
-					    helper.expect_callback();
-					    conn.prepare('SELECT * FROM t WHERE str=? ORDER BY id').addCallback(function(stmt2) {
-						helper.was_called_back();
-						helper.expect_callback();
-						stmt2.execute('def').addCallback(scope(this,function(result) {
-						    helper.was_called_back();
-						    // result data
-						    test.assertEquals(2, result.records.length);
-						    test.assertEquals(2, result.records[0][0]);
-						    test.assertEquals('def', result.records[0][1]);
-						    test.assertEquals(3, result.records[1][0]);
-						    test.assertEquals('def', result.records[1][1]);
-						    
-						    conn_close(conn, promise);
-						}));
-					    });
-					}));
-				});
-			    }));
-		    });
-		}));
-	});
-    
-    return promise;
+				    conn.close();
+				    promise.emitSuccess();
+				}),
+			        function(error){ test.fail(); });
+			    },
+			    function(error){ test.fail(); });
+			}),
+                        function(error){ test.fail(); });
+		    },
+                    function(error){ test.fail(); });
+		}),
+                function(error){ test.fail(); });
+	    },
+            function(error){ test.fail(); });
+	}),
+        function(error){ test.fail(); });
+    },
+    function(error){ test.fail(); });
+    return promise
 }
 all_tests.push(["test_prepared_statements", test_prepared_statements]);
+
 
 var test_statements_type = function(sql_type, value, assert_value_or_callback) {
     return function() {
@@ -359,30 +376,32 @@ var test_statements_type = function(sql_type, value, assert_value_or_callback) {
 	
 	// regular query
 	helper.expect_callback();
-	conn.query("INSERT INTO t VALUE (1,'"+mysql.quote(value)+"')")
-            .addCallback(function(result) {
+	conn.query("INSERT INTO t VALUE (1,'"+mysql.quote(value)+"')", function(result) {
+	    helper.was_called_back();
+	    // verify inserted data
+	    helper.expect_callback();
+	    conn.query('SELECT * FROM t ORDER BY id', function(result) {
 		helper.was_called_back();
-		// verify inserted data
-		helper.expect_callback();
-		conn.query('SELECT * FROM t ORDER BY id').addCallback(function(result) {
-		    helper.was_called_back();
-		    
-		    // result data
-		    test.assertEquals(1, result.records.length);
-		    test.assertEquals(1, result.records[0][0]);
-		    if(typeof(assert_value_or_callback)=='undefined') {
-			test.assertEquals(value, result.records[0][1]);
-		    }
-		    else if(typeof(assert_value_or_callback)=='function') {
-			assert_value_or_callback(result.records[0][1]);
-		    }
-		    else {
-			test.assertEquals(assert_value_or_callback, result.records[0][1]);
-		    }
-		    conn_close(conn, promise);
-		});
-	    });
-	return promise;
+		
+		// result data
+		test.assertEquals(1, result.records.length);
+		test.assertEquals(1, result.records[0][0]);
+		if(typeof(assert_value_or_callback)=='undefined') {
+		    test.assertEquals(value, result.records[0][1]);
+		}
+		else if(typeof(assert_value_or_callback)=='function') {
+		    assert_value_or_callback(result.records[0][1]);
+		}
+		else {
+		    test.assertEquals(assert_value_or_callback, result.records[0][1]);
+		}
+		conn.close();
+		promise.emitSuccess();
+	    },
+            function(error){ test.fail(); });
+	},
+        function(error){ test.fail(); });
+	return promise
     };
 }
 
@@ -399,58 +418,58 @@ var test_prepared_statements_type = function(sql_type, value, assert_value_or_ca
 	
 	// prepared statement
 	helper.expect_callback();
-	conn.prepare('INSERT INTO t VALUE (?,?)')
-            .addCallback(function(stmt) {
-		helper.was_called_back();
-		stmt.execute(1, value)
-                    .addCallback(scope(this,function(result) {
-			// verify inserted data
-			
+	conn.prepare('INSERT INTO t VALUE (?,?)', function(stmt) {
+	    helper.was_called_back();
+	    stmt.execute([1, value], scope(this,function(result) {
+		// verify inserted data
+		
+		helper.expect_callback();
+		conn.query('SELECT * FROM t ORDER BY id', function(result) {
+		    helper.was_called_back();
+		    
+		    // result data
+		    test.assertEquals(1, result.records.length);
+		    test.assertEquals(1, result.records[0][0]);
+		    if(typeof(assert_value_or_callback)=='undefined') {
+			test.assertEquals(value, result.records[0][1]);
+		    }
+		    else if(typeof(assert_value_or_callback)=='function') {
+			test.assertEquals(true, assert_value_or_callback(result.records[0][1]));
+		    }
+		    else {
+			test.assertEquals(assert_value_or_callback, result.records[0][1]);
+		    }
+		    
+		    helper.expect_callback();
+		    conn.prepare('SELECT * FROM t WHERE id=?', function(stmt) {
+			helper.was_called_back();
 			helper.expect_callback();
-			conn.query('SELECT * FROM t ORDER BY id')
-			    .addCallback(function(result) {
-				helper.was_called_back();
-				
-				// result data
-				test.assertEquals(1, result.records.length);
-				test.assertEquals(1, result.records[0][0]);
-				if(typeof(assert_value_or_callback)=='undefined') {
-				    test.assertEquals(value, result.records[0][1]);
-				}
-				else if(typeof(assert_value_or_callback)=='function') {
-				    test.assertEquals(true, assert_value_or_callback(result.records[0][1]));
-				}
-				else {
-				    test.assertEquals(assert_value_or_callback, result.records[0][1]);
-				}
-				
-				helper.expect_callback();
-				conn.prepare('SELECT * FROM t WHERE id=?')
-				    .addCallback(function(stmt) {
-					helper.was_called_back();
-					helper.expect_callback();
-					stmt.execute(1)
-					    .addCallback(function(result) {
-						helper.was_called_back();
-						test.assertEquals(1, result.records.length);
-						test.assertEquals(1, result.records[0][0]);
-						if(typeof(assert_value_or_callback)=='undefined') {
-						    test.assertEquals(value, result.records[0][1]);
-						}
-						else if(typeof(assert_value_or_callback)=='function') {
-						    test.assertEquals(true, assert_value_or_callback(result.records[0][1]));
-						}
-						else {
-						    test.assertEquals(assert_value_or_callback, result.records[0][1]);
-						}
-						conn_close(conn, promise);
-					    })
-				    });
-			    });
-
-		    }));
-	    });
-	return promise;
+			stmt.execute([1], function(result) {
+			    helper.was_called_back();
+			    test.assertEquals(1, result.records.length);
+			    test.assertEquals(1, result.records[0][0]);
+			    if(typeof(assert_value_or_callback)=='undefined') {
+				test.assertEquals(value, result.records[0][1]);
+			    }
+			    else if(typeof(assert_value_or_callback)=='function') {
+				test.assertEquals(true, assert_value_or_callback(result.records[0][1]));
+			    }
+			    else {
+				test.assertEquals(assert_value_or_callback, result.records[0][1]);
+			    }
+			    conn.close();
+			    promise.emitSuccess();
+			},
+		        function(error){ test.fail(); });
+		    },
+		    function(error){ test.fail(); });
+		},
+	        function(error){ test.fail(); });
+	    }),
+	    function(error){ test.fail(); });
+	},
+	function(error){ test.fail(); });
+	return promise
     };
 }
 
@@ -461,10 +480,10 @@ var test_type = function(test_suite, sql_type, value, text_value, assert_value_o
 	    .addCallback(function() {
 		test_prepared_statements_type(sql_type, value, assert_value_or_callback)()
 		    .addCallback(function() {
-			promise.emitSuccess();
+			promise.emitSuccess()
 		    });
 	    });
-	return promise;
+	return promise
     }]);
 }
 
@@ -516,7 +535,6 @@ test_type(all_tests, 'TIMESTAMP', new mysql.Time(1976,2,8,12,34,56), "1976-2-8 1
 test_type(all_tests, 'DATETIME', new mysql.Time(1976,2,8,12,34,56), "1976-2-8 12:34:56", function(v){return v.year==1976 && v.month==2 && v.day==8 && v.hour==12 && v.minute==34 && v.second==56});
 test_type(all_tests, 'TIME', new mysql.Time(0,0,0,12,34,56), "12:34:56", function(v){return v.year==0 && v.month==0 && v.day==0 && v.hour==12 && v.minute==34 && v.second==56});
 test_type(all_tests, 'TIME', new mysql.Time(0,0,8,12,34,56), "8 12:34:56", function(v){return v.year==0 && v.month==0 && v.day==0 && v.hour==204 && v.minute==34 && v.second==56});
-
 
 helper.run(all_tests);
 

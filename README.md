@@ -41,7 +41,7 @@ I'll release to developer at middle March 2010.
 
 # Requirements
 
-* [node.js](http://nodejs.org/) > 0.1.29 (Supported 0.1.30)
+* [node.js](http://nodejs.org/) > 0.1.31
 
 
 Optional:

@@ -11,6 +11,28 @@ var Promise = require('../lib/mysql/node-promise').Promise;
 
 var all_tests = [];
 
+var test_protocolVersion11 = function() {
+    var promise = new Promise();
+    var conn = helper.createMockConnection(mysql, "protocol version 11");
+    helper.expect_callback();
+    conn.connect(
+	function() {
+	    assert.ok(true, false);
+	    conn.close();
+	    promise.emitError();
+	},
+	function(error) {
+	    helper.was_called_back();
+	    assert.equal("Don't support protocol version 11", error.message);
+sys.puts(sys.inspect(error.message));
+	    conn.close();
+	    promise.emitSuccess();
+	}
+    );
+    return promise
+};
+all_tests.push(["protocol version 11", test_protocolVersion11]);
+
 var test_authenticationTimeout = function() {
     var promise = new Promise();
     var conn = helper.createMockConnection(mysql, "authentication timeout");

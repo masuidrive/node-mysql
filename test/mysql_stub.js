@@ -18,6 +18,12 @@ var streams = {
 	["close"]
     ], 
 
+    "protocol version 11": [
+	["server", "38 00 00 00"],
+	["server", "0b 35 2e 31 2e 34 33 2d 6c 6f 67 00 7d 13 00 00 52 7a 33 2a 76 38 51 6d 00 ff f7 08 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 53 39 60 58 79 77 69 2b 36 6f 4e 78 00"],
+	["sleep", 1000]
+    ], 
+
 };
 
 var server = tcp.createServer(function (socket) {

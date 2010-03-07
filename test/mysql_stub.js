@@ -76,4 +76,5 @@ var server = tcp.createServer(function (socket) {
 	sys.puts("Closed\n");
     });
 });
+sys.puts("Start Mysql Stub for test on localhost:33306")
 server.listen(33306, "localhost");

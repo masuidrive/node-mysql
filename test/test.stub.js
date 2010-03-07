@@ -2,7 +2,7 @@
 GLOBAL.DEBUG = true;
 var events = require("events");
 var sys = require("sys");
-var test = require("mjsunit");
+var assert = require("assert");
 
 var helper = require('./helper');
 var config = require('./config');
@@ -18,13 +18,13 @@ var test_authenticationTimeout = function() {
     helper.expect_callback();
     conn.connect(
 	function() {
-	    test.fail();
+	    assert.ok(true, false);
 	    conn.close();
 	    promise.emitError();
 	},
 	function(error) {
 	    helper.was_called_back();
-	    test.assertEquals('connection timeout', error.message);
+	    assert.equal('connection timeout', error.message);
 	    conn.close();
 	    promise.emitSuccess();
 	}
@@ -39,13 +39,13 @@ var test_shutdownOnAuthentication = function() {
     helper.expect_callback();
     conn.connect(
 	function() {
-	    test.fail();
+	    assert.ok(true, false);
 	    conn.close();
 	    promise.emitError();
 	},
 	function(error) {
 	    helper.was_called_back();
-	    test.assertEquals('connection was closed', error.message);
+	    assert.ok('connection was closed', error.message);
 	    conn.close();
 	    promise.emitSuccess();
 	}

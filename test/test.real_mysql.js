@@ -2,7 +2,7 @@
 GLOBAL.DEBUG = true;
 var events = require("events");
 var sys = require("sys");
-var test = require("mjsunit");
+var assert = require("assert");
 
 var helper = require('./helper');
 process.mixin(GLOBAL, helper);
@@ -45,76 +45,76 @@ var test_result1 = function() {
 	helper.was_called_back();
 	
 	// field information
-	test.assertEquals(2, result.fields.length);
-	test.assertEquals('LONG', result.fields[0].type.name);
-	test.assertEquals('nodejs_mysql', result.fields[0].db);
-	test.assertEquals('id', result.fields[0].name);
-	test.assertEquals('id', result.fields[0].org_name);
-	test.assertEquals('t', result.fields[0].table);
-	test.assertEquals('t', result.fields[0].org_table);
-	test.assertEquals(11, result.fields[0].length);
-	test.assertEquals(0, result.fields[0].decimals);
-	test.assertEquals(undefined, result.fields[0].defaultValue);
-	test.assertEquals(mysql.constants.field.PRI_KEY_FLAG
+	assert.equal(2, result.fields.length);
+	assert.equal('LONG', result.fields[0].type.name);
+	assert.equal('nodejs_mysql', result.fields[0].db);
+	assert.equal('id', result.fields[0].name);
+	assert.equal('id', result.fields[0].org_name);
+	assert.equal('t', result.fields[0].table);
+	assert.equal('t', result.fields[0].org_table);
+	assert.equal(11, result.fields[0].length);
+	assert.equal(0, result.fields[0].decimals);
+	assert.equal(undefined, result.fields[0].defaultValue);
+	assert.equal(mysql.constants.field.PRI_KEY_FLAG
 			  | mysql.constants.field.PART_KEY_FLAG
 			  | mysql.constants.field.NOT_NULL_FLAG,
 			  result.fields[0].flags);
-	test.assertEquals(true, result.fields[0].is_num());
-	test.assertEquals(true, result.fields[0].is_not_null());
-	test.assertEquals(true, result.fields[0].is_pri_key());
+	assert.equal(true, result.fields[0].is_num());
+	assert.equal(true, result.fields[0].is_not_null());
+	assert.equal(true, result.fields[0].is_pri_key());
 	
-	test.assertEquals('VAR_STRING', result.fields[1].type.name);
-	test.assertEquals('nodejs_mysql', result.fields[1].db);
-	test.assertEquals('str', result.fields[1].name);
-	test.assertEquals('str', result.fields[1].org_name);
-	test.assertEquals('t', result.fields[1].table);
-	test.assertEquals('t', result.fields[1].org_table);
-	test.assertEquals(0, result.fields[1].decimals);
-	test.assertEquals(undefined, result.fields[0].defaultValue);
-	test.assertEquals(0, result.fields[1].flags);
-	test.assertEquals(false, result.fields[1].is_num());
-	test.assertEquals(false, result.fields[1].is_not_null());
-	test.assertEquals(false, result.fields[1].is_pri_key());
+	assert.equal('VAR_STRING', result.fields[1].type.name);
+	assert.equal('nodejs_mysql', result.fields[1].db);
+	assert.equal('str', result.fields[1].name);
+	assert.equal('str', result.fields[1].org_name);
+	assert.equal('t', result.fields[1].table);
+	assert.equal('t', result.fields[1].org_table);
+	assert.equal(0, result.fields[1].decimals);
+	assert.equal(undefined, result.fields[0].defaultValue);
+	assert.equal(0, result.fields[1].flags);
+	assert.equal(false, result.fields[1].is_num());
+	assert.equal(false, result.fields[1].is_not_null());
+	assert.equal(false, result.fields[1].is_pri_key());
 	
 	// result data
-	test.assertEquals(4, result.records.length);
-	test.assertEquals(1, result.records[0][0]);
-	test.assertEquals('abc', result.records[0][1]); // string
-	test.assertEquals(2, result.records[1][0]);
-	test.assertEquals('0', result.records[1][1]); // string
-	test.assertEquals(3, result.records[2][0]);
-	test.assertEquals('', result.records[2][1]); // blank string
-	test.assertEquals(4, result.records[3][0]);
-	test.assertEquals(null, result.records[3][1]); // null string
+	assert.equal(4, result.records.length);
+	assert.equal(1, result.records[0][0]);
+	assert.equal('abc', result.records[0][1]); // string
+	assert.equal(2, result.records[1][0]);
+	assert.equal('0', result.records[1][1]); // string
+	assert.equal(3, result.records[2][0]);
+	assert.equal('', result.records[2][1]); // blank string
+	assert.equal(4, result.records[3][0]);
+	assert.equal(null, result.records[3][1]); // null string
 	
 	// result hash
 	var res = result.toHash(result.records[0]);
-	test.assertEquals(res['t.id'], 1);
-	test.assertEquals(res['t.str'], 'abc');
+	assert.equal(res['t.id'], 1);
+	assert.equal(res['t.str'], 'abc');
 	var res = result.toHash(result.records[1]);
-	test.assertEquals(res['t.id'], 2);
-	test.assertEquals(res['t.str'], '0');
+	assert.equal(res['t.id'], 2);
+	assert.equal(res['t.str'], '0');
 	var res = result.toHash(result.records[2]);
-	test.assertEquals(res['t.id'], 3);
-	test.assertEquals(res['t.str'], '');
+	assert.equal(res['t.id'], 3);
+	assert.equal(res['t.str'], '');
 	var res = result.toHash(result.records[3]);
-	test.assertEquals(res['t.id'], 4);
-	test.assertEquals(res['t.str'], undefined);
+	assert.equal(res['t.id'], 4);
+	assert.equal(res['t.str'], undefined);
 
 	// result hash fieldname without table
 	result.fieldname_with_table = false
 	var res = result.toHash(result.records[0]);
-	test.assertEquals(res['id'], 1);
-	test.assertEquals(res['str'], 'abc');
+	assert.equal(res['id'], 1);
+	assert.equal(res['str'], 'abc');
 	var res = result.toHash(result.records[1]);
-	test.assertEquals(res['id'], 2);
-	test.assertEquals(res['str'], '0');
+	assert.equal(res['id'], 2);
+	assert.equal(res['str'], '0');
 	var res = result.toHash(result.records[2]);
-	test.assertEquals(res['id'], 3);
-	test.assertEquals(res['str'], '');
+	assert.equal(res['id'], 3);
+	assert.equal(res['str'], '');
 	var res = result.toHash(result.records[3]);
-	test.assertEquals(res['id'], 4);
-	test.assertEquals(res['str'], undefined);
+	assert.equal(res['id'], 4);
+	assert.equal(res['str'], undefined);
     });
 
     // table & column alias
@@ -123,48 +123,48 @@ var test_result1 = function() {
 	helper.was_called_back();
 	
 	// field information
-	test.assertEquals(1, result.fields.length);
-	test.assertEquals('LONG', result.fields[0].type.name);
-	test.assertEquals('nodejs_mysql', result.fields[0].db);
-	test.assertEquals('pkey', result.fields[0].name);
-	test.assertEquals('id', result.fields[0].org_name);
-	test.assertEquals('ttt', result.fields[0].table);
-	test.assertEquals('t', result.fields[0].org_table);
-	test.assertEquals(undefined, result.fields[0].defaultValue);
+	assert.equal(1, result.fields.length);
+	assert.equal('LONG', result.fields[0].type.name);
+	assert.equal('nodejs_mysql', result.fields[0].db);
+	assert.equal('pkey', result.fields[0].name);
+	assert.equal('id', result.fields[0].org_name);
+	assert.equal('ttt', result.fields[0].table);
+	assert.equal('t', result.fields[0].org_table);
+	assert.equal(undefined, result.fields[0].defaultValue);
 	
 	// result data
-	test.assertEquals(4, result.records.length);
-	test.assertEquals(1, result.records[0][0]);
-	test.assertEquals(2, result.records[1][0]);
-	test.assertEquals(3, result.records[2][0]);
-	test.assertEquals(4, result.records[3][0]);
+	assert.equal(4, result.records.length);
+	assert.equal(1, result.records[0][0]);
+	assert.equal(2, result.records[1][0]);
+	assert.equal(3, result.records[2][0]);
+	assert.equal(4, result.records[3][0]);
 	
 	// result hash
 	var res = result.toHash(result.records[0]);
-	test.assertEquals(res['ttt.pkey'], 1);
+	assert.equal(res['ttt.pkey'], 1);
 	var res = result.toHash(result.records[1]);
-	test.assertEquals(res['ttt.pkey'], 2);
+	assert.equal(res['ttt.pkey'], 2);
 	var res = result.toHash(result.records[2]);
-	test.assertEquals(res['ttt.pkey'], 3);
+	assert.equal(res['ttt.pkey'], 3);
 	var res = result.toHash(result.records[3]);
-	test.assertEquals(res['ttt.pkey'], 4);
+	assert.equal(res['ttt.pkey'], 4);
 
 	// result hash fieldname without table
 	result.fieldname_with_table = false
 	var res = result.toHash(result.records[0]);
-	test.assertEquals(res['pkey'], 1);
+	assert.equal(res['pkey'], 1);
 	var res = result.toHash(result.records[1]);
-	test.assertEquals(res['pkey'], 2);
+	assert.equal(res['pkey'], 2);
 	var res = result.toHash(result.records[2]);
-	test.assertEquals(res['pkey'], 3);
+	assert.equal(res['pkey'], 3);
 	var res = result.toHash(result.records[3]);
-	test.assertEquals(res['pkey'], 4);
+	assert.equal(res['pkey'], 4);
 	
 	conn.close();
 	promise.emitSuccess();
     },
     function(error) { 
-         test.fail();
+         assert.ok(true, false);
     });
 
     return promise
@@ -187,32 +187,32 @@ var test_query_without_table = function() {
 		   helper.was_called_back();
 		   
 		   // field information
-		   test.assertEquals(1, result.fields.length);
-		   test.assertEquals('NEWDECIMAL', result.fields[0].type.name);
-		   test.assertEquals('', result.fields[0].db);
-		   test.assertEquals('1.23', result.fields[0].name);
-		   test.assertEquals('', result.fields[0].org_name);
-		   test.assertEquals('', result.fields[0].table);
-		   test.assertEquals('', result.fields[0].org_table);
-		   test.assertEquals(false, conn.has_more_results());
+		   assert.equal(1, result.fields.length);
+		   assert.equal('NEWDECIMAL', result.fields[0].type.name);
+		   assert.equal('', result.fields[0].db);
+		   assert.equal('1.23', result.fields[0].name);
+		   assert.equal('', result.fields[0].org_name);
+		   assert.equal('', result.fields[0].table);
+		   assert.equal('', result.fields[0].org_table);
+		   assert.equal(false, conn.has_more_results());
 		   
 		   // result data
-		   test.assertEquals(1, result.records.length);
-		   test.assertEquals(1.23, result.records[0][0]);
+		   assert.equal(1, result.records.length);
+		   assert.equal(1.23, result.records[0][0]);
 		   
 		   // result hash
 		   var res = result.toHash(result.records[0]);
-		   test.assertEquals(res['1.23'], 1.23);
+		   assert.equal(res['1.23'], 1.23);
 		   
 		   // result hash fieldname without table
 		   result.fieldname_with_table = false
 		   var res = result.toHash(result.records[0]);
-		   test.assertEquals(res['1.23'], 1.23);
+		   assert.equal(res['1.23'], 1.23);
 		   conn.close();
 		   promise.emitSuccess();
 	       }, 
 	       function(error) { 
-		   test.fail();
+		   assert.ok(true, false);
 	       });
     return promise
 }
@@ -229,26 +229,26 @@ var test_placeholder = function() {
     conn.connect();
     
     var sql = conn.extract_placeholder(['SELECT ?,?,?,?,?,?,?,?', 123, 1.23, 'abc', true, false, new mysql.Time(1976,2,8), new mysql.Time(0,0,0,12,34,56), new mysql.Time(1976,2,8,12,34,56)]);
-    test.assertEquals("SELECT 123,1.23,'abc',true,false,'1976-2-8 0:0:0','12:34:56','1976-2-8 12:34:56'", sql);
+    assert.equal("SELECT 123,1.23,'abc',true,false,'1976-2-8 0:0:0','12:34:56','1976-2-8 12:34:56'", sql);
     
     helper.expect_callback();
     conn.query(['SELECT ?,?', 123],
 	       function(result) {
-		   test.fail();
+		   assert.ok(true, false);
 	       }, 
 	       function(error) {
 		   helper.was_called_back();
-		   test.assertEquals('parameter count mismatch', error.message);
+		   assert.equal('parameter count mismatch', error.message);
 	       });
 
     helper.expect_callback();
     conn.query(['SELECT ?', 123, 456],
 	       function(result) {
-		   test.fail();
+		   assert.ok(true, false);
 	       }, 
 	       function(error) {
 		   helper.was_called_back();
-		   test.assertEquals('parameter count mismatch', error.message);
+		   assert.equal('parameter count mismatch', error.message);
 	       });
 
     helper.expect_callback();
@@ -257,21 +257,21 @@ var test_placeholder = function() {
 		   helper.was_called_back();
 		   
 		   // field information
-		   test.assertEquals(5, result.fields.length);
+		   assert.equal(5, result.fields.length);
 		   
 		   // result data
-		   test.assertEquals(1, result.records.length);
-		   test.assertEquals(123, result.records[0][0]);
-		   test.assertEquals(1.23, result.records[0][1]);
-		   test.assertEquals('abc', result.records[0][2]);
-		   test.assertEquals(1, result.records[0][3]);
-		   test.assertEquals(0, result.records[0][4]);
+		   assert.equal(1, result.records.length);
+		   assert.equal(123, result.records[0][0]);
+		   assert.equal(1.23, result.records[0][1]);
+		   assert.equal('abc', result.records[0][2]);
+		   assert.equal(1, result.records[0][3]);
+		   assert.equal(0, result.records[0][4]);
 		   conn.close();
 		   promise.emitSuccess();
 	       }, 
 	       function(error) {
 		   sys.puts(sys.inspect(error));
-		   test.fail();
+		   assert.ok(true, false);
 	       });
     return promise
 }
@@ -291,7 +291,7 @@ var test_multi_statements = function() {
     helper.expect_callback();
     conn.query('SELECT 1,2; SELECT 3,4,5',
 	       function(result) { // success
-		   test.fail();
+		   assert.ok(true, false);
 	       },
 	       function(error) { // fail
 		   helper.was_called_back();
@@ -305,32 +305,32 @@ var test_multi_statements = function() {
 		   helper.was_called_back();
 		   
 		   // result 1st query data
-		   test.assertEquals(1, result.records.length);
-		   test.assertEquals(1, result.records[0][0]);
-		   test.assertEquals(2, result.records[0][1]);
+		   assert.equal(1, result.records.length);
+		   assert.equal(1, result.records[0][0]);
+		   assert.equal(2, result.records[0][1]);
 		   
-		   test.assertEquals(true, conn.has_more_results());
+		   assert.equal(true, conn.has_more_results());
 		   helper.expect_callback();
 		   conn.next_result(
 		       function(result) {
 			   helper.was_called_back();
 			   // result 2nd query data
-			   test.assertEquals(1, result.records.length);
-			   test.assertEquals(3, result.records[0][0]);
-			   test.assertEquals(4, result.records[0][1]);
-			   test.assertEquals(5, result.records[0][2]);
+			   assert.equal(1, result.records.length);
+			   assert.equal(3, result.records[0][0]);
+			   assert.equal(4, result.records[0][1]);
+			   assert.equal(5, result.records[0][2]);
 			   
 			   // no more data
-			   test.assertEquals(false, conn.has_more_results());
+			   assert.equal(false, conn.has_more_results());
 			   conn.close();
 			   promise.emitSuccess();
 		       },
 		       function(error){
-			   test.fail();
+			   assert.ok(true, false);
 		       });
 	       },
 	       function(error) {
-		   test.fail();
+		   assert.ok(true, false);
 	       });
     return promise
 }
@@ -338,7 +338,7 @@ all_tests.push(["test_multi_statements", test_multi_statements]);
 
 
 var test_quote = function(complete) {
-    test.assertEquals("abc\\'def\\\"ghi\\0jkl%mno\u8868", mysql.quote("abc'def\"ghi\0jkl%mno\u8868"));
+    assert.equal("abc\\'def\\\"ghi\\0jkl%mno\u8868", mysql.quote("abc'def\"ghi\0jkl%mno\u8868"));
 };
 all_tests.push(["test_quote", test_quote]);
 
@@ -363,9 +363,9 @@ var test_prepared_statements = function() {
 		helper.was_called_back();
 		
 		// result data
-		test.assertEquals(1, result.records.length);
-		test.assertEquals(1, result.records[0][0]);
-		test.assertEquals('abc', result.records[0][1]);
+		assert.equal(1, result.records.length);
+		assert.equal(1, result.records[0][0]);
+		assert.equal('abc', result.records[0][1]);
 		
 		helper.expect_callback();
 		stmt.execute([2,'def'], scope(this, function(result) {
@@ -376,11 +376,11 @@ var test_prepared_statements = function() {
 			helper.was_called_back();
 			
 			// result data
-			test.assertEquals(2, result.records.length);
-			test.assertEquals(1, result.records[0][0]);
-			test.assertEquals('abc', result.records[0][1]);
-			test.assertEquals(2, result.records[1][0]);
-			test.assertEquals('def', result.records[1][1]);
+			assert.equal(2, result.records.length);
+			assert.equal(1, result.records[0][0]);
+			assert.equal('abc', result.records[0][1]);
+			assert.equal(2, result.records[1][0]);
+			assert.equal('def', result.records[1][1]);
 			
 			helper.expect_callback();
 			stmt.execute([3,'def'], scope(this, function(result) {
@@ -393,30 +393,30 @@ var test_prepared_statements = function() {
 				stmt2.execute(['def'],  scope(this, function(result) {
 				    helper.was_called_back();
 				    // result data
-				    test.assertEquals(2, result.records.length);
-				    test.assertEquals(2, result.records[0][0]);
-				    test.assertEquals('def', result.records[0][1]);
-				    test.assertEquals(3, result.records[1][0]);
-				    test.assertEquals('def', result.records[1][1]);
+				    assert.equal(2, result.records.length);
+				    assert.equal(2, result.records[0][0]);
+				    assert.equal('def', result.records[0][1]);
+				    assert.equal(3, result.records[1][0]);
+				    assert.equal('def', result.records[1][1]);
 				    
 				    conn.close();
 				    promise.emitSuccess();
 				}),
-			        function(error){ test.fail(); });
+			        function(error){ assert.ok(true, false); });
 			    },
-			    function(error){ test.fail(); });
+			    function(error){ assert.ok(true, false); });
 			}),
-                        function(error){ test.fail(); });
+                        function(error){ assert.ok(true, false); });
 		    },
-                    function(error){ test.fail(); });
+                    function(error){ assert.ok(true, false); });
 		}),
-                function(error){ test.fail(); });
+                function(error){ assert.ok(true, false); });
 	    },
-            function(error){ test.fail(); });
+            function(error){ assert.ok(true, false); });
 	}),
-        function(error){ test.fail(); });
+        function(error){ assert.ok(true, false); });
     },
-    function(error){ test.fail(); });
+    function(error){ assert.ok(true, false); });
     return promise
 }
 all_tests.push(["test_prepared_statements", test_prepared_statements]);
@@ -443,23 +443,23 @@ var test_statements_type = function(sql_type, value, assert_value_or_callback) {
 		helper.was_called_back();
 		
 		// result data
-		test.assertEquals(1, result.records.length);
-		test.assertEquals(1, result.records[0][0]);
+		assert.equal(1, result.records.length);
+		assert.equal(1, result.records[0][0]);
 		if(typeof(assert_value_or_callback)=='undefined') {
-		    test.assertEquals(value, result.records[0][1]);
+		    assert.equal(value, result.records[0][1]);
 		}
 		else if(typeof(assert_value_or_callback)=='function') {
 		    assert_value_or_callback(result.records[0][1]);
 		}
 		else {
-		    test.assertEquals(assert_value_or_callback, result.records[0][1]);
+		    assert.equal(assert_value_or_callback, result.records[0][1]);
 		}
 		conn.close();
 		promise.emitSuccess();
 	    },
-            function(error){ test.fail(); });
+            function(error){ assert.ok(true, false); });
 	},
-        function(error){ test.fail(); });
+        function(error){ assert.ok(true, false); });
 	return promise
     };
 }
@@ -487,16 +487,16 @@ var test_prepared_statements_type = function(sql_type, value, assert_value_or_ca
 		    helper.was_called_back();
 		    
 		    // result data
-		    test.assertEquals(1, result.records.length);
-		    test.assertEquals(1, result.records[0][0]);
+		    assert.equal(1, result.records.length);
+		    assert.equal(1, result.records[0][0]);
 		    if(typeof(assert_value_or_callback)=='undefined') {
-			test.assertEquals(value, result.records[0][1]);
+			assert.equal(value, result.records[0][1]);
 		    }
 		    else if(typeof(assert_value_or_callback)=='function') {
-			test.assertEquals(true, assert_value_or_callback(result.records[0][1]));
+			assert.equal(true, assert_value_or_callback(result.records[0][1]));
 		    }
 		    else {
-			test.assertEquals(assert_value_or_callback, result.records[0][1]);
+			assert.equal(assert_value_or_callback, result.records[0][1]);
 		    }
 		    
 		    helper.expect_callback();
@@ -505,29 +505,29 @@ var test_prepared_statements_type = function(sql_type, value, assert_value_or_ca
 			helper.expect_callback();
 			stmt.execute([1], function(result) {
 			    helper.was_called_back();
-			    test.assertEquals(1, result.records.length);
-			    test.assertEquals(1, result.records[0][0]);
+			    assert.equal(1, result.records.length);
+			    assert.equal(1, result.records[0][0]);
 			    if(typeof(assert_value_or_callback)=='undefined') {
-				test.assertEquals(value, result.records[0][1]);
+				assert.equal(value, result.records[0][1]);
 			    }
 			    else if(typeof(assert_value_or_callback)=='function') {
-				test.assertEquals(true, assert_value_or_callback(result.records[0][1]));
+				assert.equal(true, assert_value_or_callback(result.records[0][1]));
 			    }
 			    else {
-				test.assertEquals(assert_value_or_callback, result.records[0][1]);
+				assert.equal(assert_value_or_callback, result.records[0][1]);
 			    }
 			    conn.close();
 			    promise.emitSuccess();
 			},
-		        function(error){ test.fail(); });
+		        function(error){ assert.ok(true, false); });
 		    },
-		    function(error){ test.fail(); });
+		    function(error){ assert.ok(true, false); });
 		},
-	        function(error){ test.fail(); });
+	        function(error){ assert.ok(true, false); });
 	    }),
-	    function(error){ test.fail(); });
+	    function(error){ assert.ok(true, false); });
 	},
-	function(error){ test.fail(); });
+	function(error){ assert.ok(true, false); });
 	return promise
     };
 }
@@ -616,18 +616,19 @@ var test_load_localfile = function() {
 		   helper.was_called_back();
 
 		   // field information
-		   test.assertEquals(2, result.fields.length);
+		   assert.equal(2, result.fields.length);
 		   
 		   // result data
-		   test.assertEquals(2, result.records.length);
-		   test.assertEquals(1, result.records[0][0]);
-		   test.assertEquals('abc', result.records[0][1]);
-		   test.assertEquals(2, result.records[1][0]);
-		   test.assertEquals('def', result.records[1][1]);
+		   assert.equal(2, result.records.length);
+		   assert.equal(1, result.records[0][0]);
+		   assert.equal('abc', result.records[0][1]);
+		   assert.equal(2, result.records[1][0]);
+		   assert.equal('def', result.records[1][1]);
 		   conn.close();
 		   promise.emitSuccess();
 	       },
-	       function(error){ test.fail(); });
+	       function(error){ assert.ok(true, false); });
+    return promise;
 }
 all_tests.push(["test_load_localfile", test_load_localfile]);
 

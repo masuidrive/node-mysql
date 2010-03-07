@@ -1,5 +1,5 @@
 var sys = require("sys");
-var test = require("mjsunit");
+var assert = require("assert");
 
 var pending_callbacks = 0;
 exports.pending_callbacks = pending_callbacks;
@@ -36,7 +36,7 @@ var run = function(testfuncs){
     if(promise) {
 	promise
 	    .addCallback(function() {
-		test.assertEquals(0, pending_callbacks);
+		assert.equal(0, pending_callbacks);
 		sys.puts("Success: "+testfunc[0]);
 		run(testfuncs);
 	    })
@@ -53,7 +53,7 @@ var run = function(testfuncs){
 exports.run = run;
 
 var exceptClass = function(klass,obj) {
-    test.assertEquals(klass.contructor, obj.constractor);
+    assert.equal(klass.contructor, obj.constractor);
 }
 exports.exceptClass = exceptClass;
 

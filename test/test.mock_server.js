@@ -5,33 +5,21 @@ var sys = require("sys");
 var test = require("mjsunit");
 
 var helper = require('./helper');
-process.mixin(GLOBAL, helper);
 var config = require('./config');
 var mysql = require('../lib/mysql');
 var Promise = require('../lib/mysql/node-promise').Promise;
 
 var all_tests = [];
 
-var createMockConnection = function(stream) {
-    var conn = new mysql.Connection('localhost', 
-				    'nodejs_mysql',
-				    'nodejs_mysql',
-				    'nodejs_mysql',
-				    33306);
-    helper.exceptClass(mysql.Connection, conn);
-    conn.addListener("connect", function() {
-	conn.protocol.conn.socket.write(stream);
-    });
-    return conn;
-}
-
-var test_createConnectionTimeout = function() {
+var test_authenticationTimeout = function() {
     var promise = new Promise();
-    var conn = createMockConnection("authentication timeout");
+    var conn = helper.createMockConnection(mysql, "authentication timeout");
     conn.timeout(1000);
     helper.expect_callback();
     conn.connect(
 	function() {
+	    test.fail();
+	    conn.close();
 	    promise.emitError();
 	},
 	function(error) {
@@ -43,7 +31,28 @@ var test_createConnectionTimeout = function() {
     );
     return promise
 };
-all_tests.push(["createConnectionTimeout", test_createConnectionTimeout]);
+//all_tests.push(["authentication timeout", test_authenticationTimeout]);
+
+var test_shutdownOnAuthentication = function() {
+    var promise = new Promise();
+    var conn = helper.createMockConnection(mysql, "shutdown on authentication");
+    helper.expect_callback();
+    conn.connect(
+	function() {
+	    test.fail();
+	    conn.close();
+	    promise.emitError();
+	},
+	function(error) {
+	    helper.was_called_back();
+	    test.assertEquals('connection was closed', error.message);
+	    conn.close();
+	    promise.emitSuccess();
+	}
+    );
+    return promise
+};
+all_tests.push(["shutdown on authentication", test_shutdownOnAuthentication]);
 
 helper.run(all_tests);
 

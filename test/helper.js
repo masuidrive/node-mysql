@@ -14,6 +14,20 @@ var was_called_back = function() {
 }
 exports.was_called_back = was_called_back;
 
+var createMockConnection = function(mysql, stream) {
+    var conn = new mysql.Connection('localhost', 
+				    'nodejs_mysql',
+				    'nodejs_mysql',
+				    'nodejs_mysql',
+				    33306);
+    exports.exceptClass(mysql.Connection, conn);
+    conn.addListener("connect", function() {
+	conn.protocol.conn.socket.write(stream);
+    });
+    return conn;
+}
+exports.createMockConnection = createMockConnection;
+
 var run = function(testfuncs){
     pending_callbacks = 0;
     var testfunc = testfuncs.shift();

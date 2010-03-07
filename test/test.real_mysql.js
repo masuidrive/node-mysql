@@ -595,6 +595,42 @@ test_type(all_tests, 'DATETIME', new mysql.Time(1976,2,8,12,34,56), "1976-2-8 12
 test_type(all_tests, 'TIME', new mysql.Time(0,0,0,12,34,56), "12:34:56", function(v){return v.year==0 && v.month==0 && v.day==0 && v.hour==12 && v.minute==34 && v.second==56});
 test_type(all_tests, 'TIME', new mysql.Time(0,0,8,12,34,56), "8 12:34:56", function(v){return v.year==0 && v.month==0 && v.day==0 && v.hour==204 && v.minute==34 && v.second==56});
 
+
+var test_load_localfile = function() {
+    var promise = new Promise();
+    var conn = new mysql.Connection(config.mysql.hostname, 
+					  config.mysql.username,
+					  config.mysql.password,
+					  config.mysql.database);
+    helper.exceptClass(mysql.Connection, conn);
+    conn.local_infile = true;
+    conn.connect();
+    conn.query("CREATE TEMPORARY TABLE t (id INTEGER, str VARCHAR(254), PRIMARY KEY (id)) CHARACTER SET 'utf8' COLLATE 'utf8_general_ci'");
+    var filename = __dirname + "/fixtures/data1.csv";
+    conn.query("LOAD DATA LOCAL INFILE '"+mysql.quote(filename)+"' INTO TABLE t",undefined, function(e){sys.puts(sys.inspect(e));});
+    
+    // execute SELECT query
+    helper.expect_callback();
+    conn.query('SELECT * FROM t ORDER BY id',
+	       function(result) { // Success
+		   helper.was_called_back();
+
+		   // field information
+		   test.assertEquals(2, result.fields.length);
+		   
+		   // result data
+		   test.assertEquals(2, result.records.length);
+		   test.assertEquals(1, result.records[0][0]);
+		   test.assertEquals('abc', result.records[0][1]);
+		   test.assertEquals(2, result.records[1][0]);
+		   test.assertEquals('def', result.records[1][1]);
+		   conn.close();
+		   promise.emitSuccess();
+	       },
+	       function(error){ test.fail(); });
+}
+all_tests.push(["test_load_localfile", test_load_localfile]);
+
 helper.run(all_tests);
 
 /*

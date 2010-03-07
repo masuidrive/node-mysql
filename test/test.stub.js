@@ -31,7 +31,7 @@ var test_authenticationTimeout = function() {
     );
     return promise
 };
-//all_tests.push(["authentication timeout", test_authenticationTimeout]);
+all_tests.push(["authentication timeout", test_authenticationTimeout]);
 
 var test_shutdownOnAuthentication = function() {
     var promise = new Promise();

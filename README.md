@@ -56,13 +56,13 @@ MIT License. See LICENSE file.
 
 # Who?
 
-Code by Yuichiro MASUI a.k.a. masuidrive
+Mainly Code by Yuichiro MASUI a.k.a. masuidrive
 
 * <masui@masuidrive.jp>
 * [http://blog.masuidrive.jp/](http://blog.masuidrive.jp/)
 
 
-# Included files
+# Related licenses
 
 MySQL protocol encode/decode from tmtm's ruby-mysql.
 

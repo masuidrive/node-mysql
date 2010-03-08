@@ -214,7 +214,7 @@ var test_query_without_table = function() {
 	       function(error) { 
 		   assert.ok(true, false);
 	       });
-    return promise
+    return promise;
 }
 all_tests.push(["test_query_without_table", test_query_without_table]);
 

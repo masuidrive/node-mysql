@@ -13,7 +13,7 @@ var Promise = require('../lib/mysql/node-promise').Promise;
 var all_tests = [];
 var test_createConnection = function() {
     var promise = new Promise();
-    var conn = new mysql.Connection(config.mysql.hostname, 
+    var conn = new mysql.Connection(config.mysql.hostname,
 				    config.mysql.username,
 				    config.mysql.password,
 				    config.mysql.database);

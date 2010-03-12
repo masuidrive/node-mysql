@@ -422,6 +422,111 @@ var test_prepared_statements = function() {
 all_tests.push(["test_prepared_statements", test_prepared_statements]);
 
 
+var test_transaction1 = function() {
+    var promise = new Promise();
+    var conn = new mysql.Connection(config.mysql.hostname, 
+					  config.mysql.username,
+					  config.mysql.password,
+					  config.mysql.database);
+    helper.exceptClass(mysql.Connection, conn);
+    conn.connect();
+    conn.autocommit(false);
+    conn.query("CREATE TEMPORARY TABLE t (id INTEGER, str VARCHAR(254), PRIMARY KEY (id)) CHARACTER SET 'utf8' COLLATE 'utf8_general_ci' Type=InnoDB");
+    conn.query("BEGIN");
+    conn.query("INSERT INTO t VALUES (1,'abc')");
+    conn.query("COMMIT");
+    // execute SELECT query
+    helper.expect_callback();
+    conn.query('SELECT * FROM t ORDER BY id', function(result) { // Success
+	helper.was_called_back();
+	
+	assert.equal(1, result.records.length);
+	assert.equal(1, result.records[0][0]);
+	assert.equal('abc', result.records[0][1]);
+
+	conn.close();
+	promise.emitSuccess();
+    });
+    return promise;
+}
+all_tests.push(["test_transaction1", test_transaction1]);
+
+
+var test_transaction2 = function() {
+    var promise = new Promise();
+    var conn = new mysql.Connection(config.mysql.hostname, 
+					  config.mysql.username,
+					  config.mysql.password,
+					  config.mysql.database);
+    helper.exceptClass(mysql.Connection, conn);
+    conn.connect();
+    conn.autocommit(false);
+    conn.query("CREATE TEMPORARY TABLE t (id INTEGER, str VARCHAR(254), PRIMARY KEY (id)) CHARACTER SET 'utf8' COLLATE 'utf8_general_ci' Type=InnoDB");
+    conn.query("BEGIN");
+    conn.query("INSERT INTO t VALUES (1,'abc')");
+    conn.query("ROLLBACK");
+    // execute SELECT query
+    helper.expect_callback();
+    conn.query('SELECT * FROM t ORDER BY id', function(result) { // Success
+	helper.was_called_back();
+	assert.equal(0, result.records.length);
+	conn.close();
+	promise.emitSuccess();
+    });
+    return promise;
+}
+all_tests.push(["test_transaction2", test_transaction2]);
+
+
+var test_error = function() {
+    var promise = new Promise();
+    var conn = new mysql.Connection(config.mysql.hostname, 
+					  config.mysql.username,
+					  config.mysql.password,
+					  config.mysql.database);
+    helper.exceptClass(mysql.Connection, conn);
+    conn.connect();
+    helper.expect_callback();
+    conn.query('ERROR STATEMENT',
+	       function(result) {
+		   promise.emitError();
+	       },
+	       function(error) {
+		   helper.was_called_back();
+		   sys.puts(error);
+		   conn.close();
+		   promise.emitSuccess();
+	       });
+    return promise;
+}
+all_tests.push(["test_error", test_error]);
+
+
+var test_defaultError = function() {
+    var promise = new Promise();
+    var conn = new mysql.Connection(config.mysql.hostname, 
+					  config.mysql.username,
+					  config.mysql.password,
+					  config.mysql.database);
+    helper.exceptClass(mysql.Connection, conn);
+    conn.connect();
+    conn.defaultErrback = function(error) {
+	helper.was_called_back();
+	sys.puts(error);
+	conn.close();
+	promise.emitSuccess();
+    };
+    
+    helper.expect_callback();
+    conn.query('ERROR STATEMENT',
+	       function(result) {
+		   promise.emitError();
+	       });
+    return promise;
+}
+all_tests.push(["test_defaultError", test_defaultError]);
+
+
 var test_statements_type = function(sql_type, value, assert_value_or_callback) {
     return function() {
 	var promise = new Promise();

@@ -56,10 +56,12 @@ MIT License. See LICENSE file.
 
 # Who?
 
-Mainly Code by Yuichiro MASUI a.k.a. masuidrive
+Code by Yuichiro MASUI(masuidrive) and contributers.
 
 * <masui@masuidrive.jp>
-* [http://blog.masuidrive.jp/](http://blog.masuidrive.jp/)
+* [http://blog.masuidrive.jp/](http://blog.masuidrive.jp/) (Japanese)
+* [http://twitter.com/masuidrive](http://http://twitter.com/masuidrive/) (Japanese)
+* [http://twitter.com/masuidrive_en](http://http://twitter.com/masuidrive_en/) (English)
 
 
 # Related licenses

@@ -8,7 +8,8 @@ var streams = {
 	["server", "38 00 00 00"],
 	["server", "0a 35 2e 31 2e 34 33 2d 6c 6f 67 00 7d 13 00 00 52 7a 33 2a 76 38 51 6d 00 ff f7 08 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 53 39 60 58 79 77 69 2b 36 6f 4e 78 00"],
 	["client", "4f 00 00 01 0d a2 00 00 00 00 00 40 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00 14 3a 92 54 0d f9 cc b8 79 34 04 6c f4 2d a0 69 58 4e cc 01 40 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00"], 
-	["sleep", 2*1000] // Timeout
+	["sleep", 2*1000], // Timeout
+	['close']
     ],
     
     "shutdown on authentication": [
@@ -21,7 +22,7 @@ var streams = {
     "protocol version 11": [
 	["server", "38 00 00 00"],
 	["server", "0b 35 2e 31 2e 34 33 2d 6c 6f 67 00 7d 13 00 00 52 7a 33 2a 76 38 51 6d 00 ff f7 08 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 53 39 60 58 79 77 69 2b 36 6f 4e 78 00"],
-	["sleep", 1000]
+	['close']
     ],
     
     "query timeout": [
@@ -34,7 +35,8 @@ var streams = {
 	["server", "07 00 00 01"],
 	["server", "00 00 00 02 00 00 00"],
 	["client", "0c 00 00 00 03 53 45 4c 45 43 54 20 31 2e 32 33"], // SELECT 1.23
-	["sleep", 2*1000] // Timeout
+	["sleep", 2*1000], // Timeout
+	['close']
     ]
 };
 
@@ -66,6 +68,9 @@ var server = tcp.createServer(function (socket) {
     
     var current_stream = undefined;
     socket.setEncoding("binary");
+    socket.setNoDelay(true);
+    socket.setTimeout(0);
+
     socket.addListener("connect", function () {
 	current_stream = undefined;
 	sys.puts("Connect");
@@ -88,7 +93,7 @@ var server = tcp.createServer(function (socket) {
 	write_process(socket);
     });
     socket.addListener("end", function () {
-	if(current_stream.length>0) sys.puts("Sequence left");
+	if(current_stream.length>0) sys.puts("Sequence left: "+current_stream.join(", "));
 	socket.close();
 	current_stream = undefined;
 	sys.puts("Closed\n");

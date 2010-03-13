@@ -1,6 +1,11 @@
 var sys = require("sys");
 var assert = require("assert");
 
+var scope = function(target, func) {
+    return function(){ return func.apply(target, arguments); }
+}
+exports.scope = scope;
+
 var pending_callbacks = 0;
 exports.pending_callbacks = pending_callbacks;
 

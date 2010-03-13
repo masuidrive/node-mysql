@@ -87,8 +87,9 @@ var test_result1 = function() {
 	assert.equal(4, result.records[3][0]);
 	assert.equal(null, result.records[3][1]); // null string
 	
-	// result hash
+	// result hash with table name
 	var res = result.toHash(result.records[0]);
+	result.fieldname_with_table = true
 	assert.equal(res['t.id'], 1);
 	assert.equal(res['t.str'], 'abc');
 	var res = result.toHash(result.records[1]);
@@ -101,8 +102,7 @@ var test_result1 = function() {
 	assert.equal(res['t.id'], 4);
 	assert.equal(res['t.str'], undefined);
 
-	// result hash fieldname without table
-	result.fieldname_with_table = false
+	// result hash fieldname
 	var res = result.toHash(result.records[0]);
 	assert.equal(res['id'], 1);
 	assert.equal(res['str'], 'abc');

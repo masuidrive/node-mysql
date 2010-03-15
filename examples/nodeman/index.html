@@ -1,0 +1,178 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>nodejs api search</title>
+<link rel="stylesheet" href="http://yui.yahooapis.com/2.7.0/build/reset-fonts-grids/reset-fonts-grids.css" type="text/css"> 
+<style>
+/* Layout */
+html, body { height: 100%; overflow: hidden; }
+#doc3 { margin: 0 !important; }
+#hd { height: 50px; }
+#ft { display: none; }
+
+/* Global style */
+* { font-family: "Lucida Grande", 'Lucida Sans', 'Lucida Sans', Lucida, sans-serif; }
+a { text-decoration: none; }
+
+/* Styles */
+#hd { background: #eee; color: #fff; }
+#hd h1 { line-height: 50px; margin: 0 8px; font-size: 197%; color: #000; }
+#bd { border-top: 1px solid #888; }
+
+/* Navigator styles */
+.navigator { border-right: 1px solid #888; }
+.keyword-box { background: #ddd; }
+#keyword { font-family: Helvetica, Arial, Verdana, sans-serif; }
+#keyword { font-size: 123.1%;/*16px*/ height: 24px; background: #fff; border: 1px solid #888; margin: 4px; padding: 0 4px; width: 282px; }
+
+#list { overflow: auto; height: 200px; }
+#list a { color: #000; }
+#list .label { font-size: 85%; font-weight: bold; background: #ddd; padding: 2px 4px; }
+#list .section { margin: 0 0 4px 0; }
+#list .item { overflow: hidden; display: block; padding: 4px 8px; }
+#list .item:hover { background: #D8F2F4; }
+#list .item .title { }
+#list .item .subtitle { color: #888; font-size: 77%; margin: 2px 0 0 0; }
+#list .item .arguments { color: #888; font-style: italic; }
+
+/* Content styles */
+#content-wrap { margin: 0 0 0 -12px; }
+#content-wrap a { color: #000; }
+#content-header { background: #E6ECF7; color: #000; padding: 6px 0 4px 12px; }
+#content-header h2 { font-size: 138.5%; font-family: Helvetica, Arial, sans-serif; font-weight: bold; }
+#content-header a { color: #0EB0F7; }
+
+#content { padding: 8px 12px 8px 12px; overflow: auto; }
+#content a { color: #DD6391; }
+#content .sectionbody { margin: 0 0 12px 0; }
+#content table, #content th, #content td { border: 1px solid #aaa; }
+#content th, #content td { padding: 2px; }
+#content th { font-weight: bold; }
+#content p { margin: 4px 0; }
+#content pre { border-left: 1px solid #aaa; padding: 2px 6px; margin: 8px 2px; }
+#content h3 { border-bottom: 1px solid #888; font-size: 123.1%; font-weight: bold; padding: 8px 0 2px 0; margin: 0 0 4px 0; }
+
+#content .functions { }
+#content .functions a { color: #000; }
+#content .functions h2 { border-bottom: 1px solid #888; font-weight: bold; font-size: 123.1%; padding: 0 0 2px 0; margin: 0 0 4px 0; }
+#content .functions .item { overflow: hidden; display: block; padding: 4px 8px; }
+#content .functions .item:hover { background: #D8F2F4; }
+#content .functions .item .name { font-weight: bold; }
+#content .functions .item .short-description { margin: 0 0 8px 8px; color: #444; }
+</style>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"></script>
+<script>
+// create inner link
+var create_link = function(type, id, inner) {
+  return '<a href="#" onclick="select_item(&quot;'+h(type)+'&quot;,&quot;'+h(id)+'&quot;);return false;" class="item">'+inner+'</a>';
+}
+
+// Observe keyword field
+var searched_keyword = '';
+var search_state = 'DONE';
+setInterval(function() {
+ var keyword = $('#keyword').val();
+ if(keyword!=searched_keyword && search_state!='PROGRESS') {
+  search_state = 'PROGRESS';
+  $.getJSON("/json/search.json", {'query': keyword}, function(json) {
+    ['modules', 'functions', 'search'].forEach(function(sec) {
+      html = json[sec].map(function(item) {
+        var name = h(item.name || '').replace(/(\(.*)$/g,"<span class=\"arguments\">$1</span>");
+        var inner = '<div class="title">'+name+'</div><div class="subtitle">'+h(item.module_name || '')+'</div>';
+        return create_link((sec=='modules'?'module':'function'), item.id, inner);
+      }).join("");
+      $("#list ."+sec+"-section").html(html);
+      searched_keyword = keyword;
+      search_state = 'DONE';
+    });
+  });
+ }
+}, 1000);
+
+// Select item
+var select_item = function(type, id) {
+  if(type=='function') {
+    $.getJSON("/json/function.json", {"id": id}, function(json) {
+      $("#content-header").html('<h2>'+h(json.name)+'</h2><div class="module">Module: '+create_link('module', json.module_id, h(json.module_name))+'</div>');
+      $("#content").html(json.description);
+      layout();
+      $("#keyword").focus();
+    });
+  }
+  else {
+    $.getJSON("/json/module.json", {"id": id}, function(json) {
+      $("#content-header").html('<h2>'+h(json.name)+'</h2>');
+      var html = json.description+'<div class="functions"><h2>Functions</h2>';
+      for(var i=0; i<json.functions.length; ++i) {
+        html += create_link('function', json.functions[i].id, '<div class="name">'+h(json.functions[i].name)+'</div><div class="short-description">'+h(json.functions[i].description)+'</div>');
+      }
+      html += '</div>';
+      $("#content").html(html);
+      layout();
+      $("#keyword").focus();
+    });
+  }
+}
+
+// Layout
+var layout = function() {
+  $('#list').height($(window).height()-$('#list').offset().top);
+  setTimeout(function() {
+    $('#content').height($(window).height()-$('#content').offset().top);
+  }, 250);
+}
+$(window).resize(layout);
+
+
+// Utils
+var h = (function(){
+  var map = {"<":"&lt;", ">":"&gt;", "&":"&amp;", "'":"&#39;", "\"":"&quot;", " ":"&nbsp;"};
+  var replaceStr = function(s){ return map[s]; };
+    return function(str) { return (str+"").replace(/<|>|&|\'|\"|\s/g, replaceStr); };
+})();
+
+// Start up
+$(document).ready(function() {
+  layout();
+  $("#keyword").focus();
+});
+</script>
+</head>
+<body>
+ <div id="doc3" class="yui-t3">
+  <div id="hd" role="banner">
+   <h1>nodejs api search</h1>
+  </div>
+  <div id="bd" role="main">
+   <div id="yui-main"><div class="yui-b"><div class="yui-g" id="content-wrap"> 
+    <div id="content-header">
+    </div>
+    <div id="content"></div>
+   </div></div></div><!-- /.yui-g .yui-b #yui-main-->
+   <div class="yui-b navigator">
+    <div class="keyword-box">
+     <input id="keyword"/>
+    </div>
+    <div id="list">
+     <div class="section">
+      <div class="modules-title label">Modules</div>
+      <div class="modules-section"></div>
+     </div>
+     <div class="section">
+      <div class="function-title label">Functions</div>
+      <div class="functions-section"></div>
+     </div>
+     <div class="section">
+      <div class="search-title label">Fulltext search</div>
+      <div class="search-section"></div>
+     </div>
+    </div><!-- /.list -->
+   </div><!-- /.yui-b -->
+  </div><!-- /#bd -->
+ </div><!-- /#doc3 -->
+</body>
+</html>
+

@@ -1,0 +1,7 @@
+* nodejs manual
+
+node apidoc2json.js > apidoc.json
+node import.js < apidoc.json
+node server
+
+open "http://localhost:8000" on your browser.

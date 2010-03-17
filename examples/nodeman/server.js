@@ -100,27 +100,26 @@ var routes = {
 };
 
 http.createServer(function (req, res) {
-    setTimeout(function () {
-	var loc = url.parse(req.url);
-	if(routes[loc.pathname]) {
-	    routes[loc.pathname](querystring.parse(loc.query), function(result, mimeType) {
-		if(typeof(result)=="string") {
-		    res.writeHead(200, {'Content-Type': (mimeType || 'text/html; charset=utf-8')});
-		    res.write(result);
-		}
-		else {
-		    res.writeHead(200, {'Content-Type': 'text/plain'});
-		    res.write(JSON.stringify(result));
-		}
-		res.close();
-	    });
-	}
-	else {
-	    res.writeHead(404, {'Content-Type': 'text/plain'});
-	    res.write('Not found');
+    var loc = url.parse(req.url);
+    if(routes[loc.pathname]) {
+	sys.log(loc.pathname);
+	routes[loc.pathname](querystring.parse(loc.query), function(result, mimeType) {
+	    if(typeof(result)=="string") {
+		res.writeHead(200, {'Content-Type': (mimeType || 'text/html; charset=utf-8')});
+		res.write(result);
+	    }
+	    else {
+		res.writeHead(200, {'Content-Type': 'text/plain'});
+		res.write(JSON.stringify(result));
+	    }
 	    res.close();
-	}
-    }, 2000);
+	});
+    }
+    else {
+	res.writeHead(404, {'Content-Type': 'text/plain'});
+	res.write('Not found');
+	res.close();
+    }
 }).listen(8000);
 
 sys.puts('Server running at http://127.0.0.1:8000/');

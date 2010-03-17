@@ -1,6 +1,6 @@
 * nodejs manual
 
-node apidoc2json.js
+node get_apidoc.js
 node import.js < api.json
 node server
 

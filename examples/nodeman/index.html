@@ -37,95 +37,89 @@ a { text-decoration: none; }
 #list .item .subtitle { color: #888; font-size: 77%; margin: 2px 0 0 0; }
 #list .item .arguments { color: #888; font-style: italic; }
 
-/* Content styles */
 #content-wrap { margin: 0 0 0 -12px; }
-#content-wrap a { color: #000; }
-#content-header { background: #E6ECF7; color: #000; padding: 6px 0 4px 12px; }
-#content-header h2 { font-size: 138.5%; font-family: Helvetica, Arial, sans-serif; font-weight: bold; }
-#content-header a { color: #0EB0F7; }
+#content { border: 0; width: 100%; }
 
-#content { padding: 8px 12px 8px 12px; overflow: auto; }
-#content a { color: #DD6391; }
-#content .sectionbody { margin: 0 0 12px 0; }
-#content table, #content th, #content td { border: 1px solid #aaa; }
-#content th, #content td { padding: 2px; }
-#content th { font-weight: bold; }
-#content p { margin: 4px 0; }
-#content pre { border-left: 1px solid #aaa; padding: 2px 6px; margin: 8px 2px; }
-#content h3 { border-bottom: 1px solid #888; font-size: 123.1%; font-weight: bold; padding: 8px 0 2px 0; margin: 0 0 4px 0; }
-
-#content .functions { }
-#content .functions a { color: #000; }
-#content .functions h2 { border-bottom: 1px solid #888; font-weight: bold; font-size: 123.1%; padding: 0 0 2px 0; margin: 0 0 4px 0; }
-#content .functions .item { overflow: hidden; display: block; padding: 4px 8px; }
-#content .functions .item:hover { background: #D8F2F4; }
-#content .functions .item .name { font-weight: bold; }
-#content .functions .item .short-description { margin: 0 0 8px 8px; color: #444; }
+#footer { position: absolute; bottom: 0px; width: 100%; text-align: center; color: #888; line-height: 31px; border-top: 1px solid #aaa; background: #fff; }
+#footer a  { color: #666; }
 </style>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"></script>
 <script>
 // create inner link
-var create_link = function(type, id, inner) {
-  return '<a href="#" onclick="select_item(&quot;'+h(type)+'&quot;,&quot;'+h(id)+'&quot;);return false;" class="item">'+inner+'</a>';
+var create_link = function(id, inner) {
+  return '<a href="#" onclick="select_item(&quot;'+h(id)+'&quot;);return false;" class="item">'+inner+'</a>';
 }
 
 // Observe keyword field
 var searched_keyword = '';
 var search_state = 'DONE';
 setInterval(function() {
- var keyword = $('#keyword').val();
- if(keyword!=searched_keyword && search_state!='PROGRESS') {
-  search_state = 'PROGRESS';
-  $.getJSON("/json/search.json", {'query': keyword}, function(json) {
-    ['modules', 'functions', 'search'].forEach(function(sec) {
-      html = json[sec].map(function(item) {
-        var name = h(item.name || '').replace(/(\(.*)$/g,"<span class=\"arguments\">$1</span>");
-        var inner = '<div class="title">'+name+'</div><div class="subtitle">'+h(item.module_name || '')+'</div>';
-        return create_link((sec=='modules'?'module':'function'), item.id, inner);
-      }).join("");
-      $("#list ."+sec+"-section").html(html);
-      searched_keyword = keyword;
-      search_state = 'DONE';
-    });
-  });
- }
-}, 1000);
-
-// Select item
-var select_item = function(type, id) {
-  if(type=='function') {
-    $.getJSON("/json/function.json", {"id": id}, function(json) {
-      $("#content-header").html('<h2>'+h(json.name)+'</h2><div class="module">Module: '+create_link('module', json.module_id, h(json.module_name))+'</div>');
-      $("#content").html(json.description);
-      layout();
-      $("#keyword").focus();
-    });
+  var keyword = $('#keyword').val();
+  if(keyword) {
+    if(keyword!=searched_keyword && search_state!='PROGRESS') {
+      search_state = 'PROGRESS';
+      $.getJSON("/json/search.json", {'query': keyword}, function(json) {
+        ['modules', 'functions', 'search'].forEach(function(sec) {
+          html = json[sec].map(function(item) {
+            var name = h(item.name || '').replace(/(\(.*)$/g,"<span class=\"arguments\">$1</span>");
+            var inner = '<div class="title">'+name+'</div><div class="subtitle">'+h(item.module_name || '')+'</div>';
+            return create_link(item.anchor, inner);
+          }).join("");
+          $("#list ."+sec+"-section").html(html);
+          searched_keyword = keyword;
+          search_state = 'DONE';
+        });
+      });
+    }
   }
   else {
-    $.getJSON("/json/module.json", {"id": id}, function(json) {
-      $("#content-header").html('<h2>'+h(json.name)+'</h2>');
-      var html = json.description+'<div class="functions"><h2>Functions</h2>';
-      for(var i=0; i<json.functions.length; ++i) {
-        html += create_link('function', json.functions[i].id, '<div class="name">'+h(json.functions[i].name)+'</div><div class="short-description">'+h(json.functions[i].description)+'</div>');
-      }
-      html += '</div>';
-      $("#content").html(html);
-      layout();
-      $("#keyword").focus();
+    load_modules();
+  }
+}, 1000);
+
+// 
+var loaded_modules = false;
+var load_modules = function() {
+  var render = function() {
+    $("#list .modules-section").html(loaded_modules);
+    $("#list .functions-section").html('');
+    $("#list .search-section").html('');
+  }
+  if(loaded_modules) {
+    render();
+  }
+  else {
+    $.getJSON("/json/modules.json", {}, function(json) {
+      html = json['modules'].map(function(item) {
+        var name = h(item.name || '').replace(/(\(.*)$/g,"<span class=\"arguments\">$1</span>");
+        var inner = '<div class="title">'+name+'</div><div class="subtitle">'+h(item.module_name || '')+'</div>';
+        return create_link(item.anchor, inner);
+      }).join("");
+      loaded_modules = html;
+      render();
     });
   }
+}
+
+// Select item
+var select_item = function(id) {
+  content_window.location.hash = id;
+  setTimeout(function() {
+    $('body').scrollTop(0);
+  }, 250);
+  $("#keyword").focus();
 }
 
 // Layout
 var layout = function() {
-  $('#list').height($(window).height()-$('#list').offset().top);
+  $('#list').height($(window).height()-$('#list').offset().top-32);
   setTimeout(function() {
-    $('#content').height($(window).height()-$('#content').offset().top);
+    $('#content').height($(window).height()-$('#content').offset().top-32
+);
   }, 250);
 }
 $(window).resize(layout);
-
 
 // Utils
 var h = (function(){
@@ -135,7 +129,9 @@ var h = (function(){
 })();
 
 // Start up
+var content_window;
 $(document).ready(function() {
+  content_window = $('#content')[0].contentWindow;
   layout();
   $("#keyword").focus();
 });
@@ -150,7 +146,7 @@ $(document).ready(function() {
    <div id="yui-main"><div class="yui-b"><div class="yui-g" id="content-wrap"> 
     <div id="content-header">
     </div>
-    <div id="content"></div>
+    <iframe src="api.html" id="content"></iframe>
    </div></div></div><!-- /.yui-g .yui-b #yui-main-->
    <div class="yui-b navigator">
     <div class="keyword-box">
@@ -173,6 +169,9 @@ $(document).ready(function() {
    </div><!-- /.yui-b -->
   </div><!-- /#bd -->
  </div><!-- /#doc3 -->
+ <div id="footer">
+  Powered by <a href="http://nodejs.org/">node.js</a> + <a href="http://github.com/masuidrive/node-mysql">node-mysql</a> + <a href="http://twitter.com/masuidrive_en">@masuidrive_en</a>.
+ </div>
 </body>
 </html>
 

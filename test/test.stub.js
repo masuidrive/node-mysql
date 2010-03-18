@@ -91,6 +91,7 @@ all_tests.push(["authentication timeout", test_authenticationTimeout]);
 var test_shutdownOnAuthentication = function() {
     var promise = new Promise();
     var conn = helper.createMockConnection(mysql, "shutdown on authentication");
+    conn.timeout(1000);
     helper.expect_callback();
     conn.connect(
 	function() {

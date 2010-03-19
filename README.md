@@ -12,7 +12,7 @@ I'll work for more tests and documents.
 
 
 # Plan
-I'll release to developer at middle March 2010.
+I'll release to developer at end of March 2010.
 
 
 # Example

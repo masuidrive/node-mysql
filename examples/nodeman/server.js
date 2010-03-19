@@ -9,7 +9,13 @@ var mysql = require('../../lib/mysql');
 
 var conn = new mysql.Connection(config.mysql.hostname, config.mysql.username, config.mysql.password, config.mysql.database, config.mysql.port);
 conn.connect();
-conn.addListener('close',function(){sys.puts('close')});
+conn.addListener('close', function(){
+    sys.puts("reconnect after 10sec");
+    setTimeout(function() {
+	sys.puts("reconnect");
+	conn.connect();
+    }, 10*1000);
+});
 
 var truncate = function(str, len) {
     if(str.length<=len+3) return str;
@@ -25,15 +31,15 @@ var moduleListJson = function(query, callback) {
     function(error) { callback({'error': error}); });
 }
 
-var moduleJson = function(query, callback) {
+var moduleJson = function(params, callback) {
     var result = {};
-    conn.query(["SELECT name, anchor, description_html FROM modules WHERE id=?", query.id], function(res) {
+    conn.query(["SELECT name, anchor, description_html FROM modules WHERE id=?", params.id], function(res) {
 	if(res.records.length>0) {
 	    result['name'] = res.records[0][0];
 	    result['anchor'] = res.records[0][1];
 	    result['description'] = res.records[0][2];
 	}
-	conn.query(["SELECT id, name, anchor, description FROM functions WHERE module_id=?", query.id], function(res) {
+	conn.query(["SELECT id, name, anchor, description FROM functions WHERE module_id=?", parmas.id], function(res) {
 	    result.functions = res.records.map(function(row) {
 		return({'id': row[0], 'name': row[1], 'anchor': row[2], 'description': truncate(row[3], 100) });
 	    });
@@ -44,9 +50,9 @@ var moduleJson = function(query, callback) {
     function(error) { callback({'error': error}); });
 }
 
-var functionJson = function(query, callback) {
+var functionJson = function(params, callback) {
     var result = {};
-    conn.query(["SELECT functions.name as name, functions.anchor as anchor, functions.description_html as description, functions.module_id as module_id, modules.name as module_name FROM functions INNER JOIN modules ON functions.module_id=modules.id WHERE functions.id=? LIMIT 1", query.id], function(res) {
+    conn.query(["SELECT functions.name as name, functions.anchor as anchor, functions.description_html as description, functions.module_id as module_id, modules.name as module_name FROM functions INNER JOIN modules ON functions.module_id=modules.id WHERE functions.id=? LIMIT 1", paramsid], function(res) {
 	if(res.records.length>0) {
 	    result = res.toHash(res.records[0]);
 	}
@@ -55,10 +61,10 @@ var functionJson = function(query, callback) {
     function(error) { callback({'error': error}); });
 }
 
-var searchJson = function(query, callback) {
+var searchJson = function(params, callback) {
     var result = {'modules':[], 'functions': [], 'search':[]};
-    if(!query.query) return callback(result);
-    var q = query.query.trim();
+    if(!params.query) return callback(result);
+    var q = String(params.query).trim();
     var like_q = '%'+q.replace(/%/g,'%%')+'%';
     conn.query(["SELECT name, anchor, id FROM modules WHERE name LIKE ?", like_q], function(res) {
 	result.modules = res.records.map(function(r){ return res.toHash(r); });
@@ -84,7 +90,7 @@ var searchJson = function(query, callback) {
 
 var staticPage = function(filename, mimeType) {
     var html = fs.readFileSync(__dirname+"/"+filename);
-    return function(query, callback) {
+    return function(params, callback) {
 	callback(html, mimeType);
     };
 }

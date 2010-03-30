@@ -3,16 +3,32 @@
 node-mysql is pure Javascript MySQL network driver for [node.js](http://nodejs.org/)
 
 
-# Current status
-It isn't for application development and production yet.
+# Want to help
+It's for testing stage.
+Now It can use for this driver developer only.
 
-Now It can use for this driver developer only :-p
+I have a lot of tasks for to make stable driver.
+I want your help.
 
-I'll work for more tests and documents.
+## Tests
+I want it to you using for protoype or test project.
+It's testing stage, It's not for real project
+When you find bugs, strange thing and unknown thing, please send to [@masuidrive_en](http://twitter.com/masuidrive_en) or [github issues](http://github.com/masuidrive/node-mysql/issues)
+If you write test code (test folder), It's awesome!!
+
+## Documents
+
+Sorry, This driver's document is less.
+My English skill is horrible. :-(
+
+This drivers is came from Ruby's mysql driver.
+Almost API is same as [mysql.rb](http://github.com/tmtm/ruby-mysql/blob/2.9/lib/mysql.rb). maybe [this document](http://tmtm.org/en/mysql/ruby/) is useful reference.
 
 
-# Plan
-I'll release to developer at end of March 2010.
+## Pool mananager
+ Currently, this driver supported single connection only.
+We need multi mysql driver pool manager for multi connections.
+And connection pool require transaction support.
 
 
 # Example
@@ -39,9 +55,12 @@ I'll release to developer at end of March 2010.
             sys.puts("Error: "+sys.inspect(error));
         });
 
+And see exmaples folder.
+
+
 # Requirements
 
-* [node.js](http://nodejs.org/) >= 0.1.32
+* [node.js](http://nodejs.org/) >= 0.1.33
 
 
 Optional:
@@ -56,12 +75,17 @@ MIT License. See LICENSE file.
 
 # Who?
 
-Code by Yuichiro MASUI(masuidrive) and contributers.
+Code by Yuichiro MASUI(masuidrive) and awesome contributers.
+please see [AUTHORS](http://github.com/masuidrive/node-mysql/blob/master/AUTHORS)
 
 * <masui@masuidrive.jp>
+* [http://blog.masuidrive.jp/](http://masuidrive.com/) (English)
+* [http://twitter.com/masuidrive_en](http://twitter.com/masuidrive_en/) (English)
 * [http://blog.masuidrive.jp/](http://blog.masuidrive.jp/) (Japanese)
-* [http://twitter.com/masuidrive](http://http://twitter.com/masuidrive/) (Japanese)
-* [http://twitter.com/masuidrive_en](http://http://twitter.com/masuidrive_en/) (English)
+* [http://twitter.com/masuidrive](http://twitter.com/masuidrive/) (Japanese)
+
+and awesome contributes.
+ file.
 
 
 # Related licenses

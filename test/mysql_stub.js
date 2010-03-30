@@ -8,16 +8,15 @@ var streams = {
 	["server", "38 00 00 00"],
 	["server", "0a 35 2e 31 2e 34 33 2d 6c 6f 67 00 7d 13 00 00 52 7a 33 2a 76 38 51 6d 00 ff f7 08 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 53 39 60 58 79 77 69 2b 36 6f 4e 78 00"],
 	["client", "4f 00 00 01"],
-  ["client", "0d a2 00 00 00 00 00 40 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00 14 3a 92 54 0d f9 cc b8 79 34 04 6c f4 2d a0 69 58 4e cc 01 40 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00"], 
-	["sleep", 2*1000], // Timeout
-	['close']
+	["client", "0d a2 00 00 00 00 00 40 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00 14 3a 92 54 0d f9 cc b8 79 34 04 6c f4 2d a0 69 58 4e cc 01 40 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00"], 
+	["sleep", 10*1000] // Timeout
     ],
     
     "shutdown on authentication": [
 	["server", "38 00 00 00"],
 	["server", "0a 35 2e 31 2e 34 33 2d 6c 6f 67 00 7d 13 00 00 52 7a 33 2a 76 38 51 6d 00 ff f7 08 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 53 39 60 58 79 77 69 2b 36 6f 4e 78 00"],
 	["client", "4f 00 00 01"],
-  ["client", "0d a2 00 00 00 00 00 40 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00 14 3a 92 54 0d f9 cc b8 79 34 04 6c f4 2d a0 69 58 4e cc 01 40 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00"],
+	["client", "0d a2 00 00 00 00 00 40 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00 14 3a 92 54 0d f9 cc b8 79 34 04 6c f4 2d a0 69 58 4e cc 01 40 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00"],
 	["close"]
     ],
     
@@ -31,17 +30,16 @@ var streams = {
 	["server", "38 00 00 00"],
 	["server", "0a 35 2e 31 2e 34 33 2d 6c 6f 67 00 45 15 00 00 41 63 4f 40 35 29 6c 65 00 ff f7 08 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 35 78 7e 31 75 7c 31 78 2d 74 26 59 00"],
 	["client", "4f 00 00 01"],
-  ["client", "0d a2 00 00 00 00 00 40 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00 14 e6 90 ce 02 19 71 77 75 0d b0 50 7d 16 d0 f6 46 96 e6 2d 56 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00"],
+	["client", "0d a2 00 00 00 00 00 40 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00 14 e6 90 ce 02 19 71 77 75 0d b0 50 7d 16 d0 f6 46 96 e6 2d 56 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00"],
 	["server", "07 00 00 02"],
 	["server", "00 00 00 02 00 00 00"],
 	["client", "11 00 00 00"],
-  ["client", "03 53 45 54 20 4e 41 4d 45 53 20 27 75 74 66 38 27"], // SET NAMES 'utf8'
+	["client", "03 53 45 54 20 4e 41 4d 45 53 20 27 75 74 66 38 27"], // SET NAMES 'utf8'
 	["server", "07 00 00 01"],
 	["server", "00 00 00 02 00 00 00"],
 	["client", "0c 00 00 00"],
-  ["client", "03 53 45 4c 45 43 54 20 31 2e 32 33"], // SELECT 1.23
-	["sleep", 2*1000], // Timeout
-	['close']
+	["client", "03 53 45 4c 45 43 54 20 31 2e 32 33"], // SELECT 1.23
+	["sleep", 10*1000] // Timeout
     ]
 };
 
@@ -96,12 +94,21 @@ var server = tcp.createServer(function (socket) {
 	    if(line[0]=="server") {
       		return sys.puts("Sequence error");
 	    }
-      
-//      sys.puts("Expected LINE ( '" + bin2hex(hex2bin(line[1])) + "' )  vs ");
-//      sys.puts("Expected DATA ( '" + bin2hex(data) + "' ) \n\n");
-      
-	    if(hex2bin(line[1])!=data) {
-		return sys.puts("Data mismatch");
+	    
+	    var bin = hex2bin(line[1]);
+	    if(bin.length < data.length) {
+		var next_line = current_stream.shift();
+		if(next_line[0]=="server") {
+      		    return sys.puts("Sequence error");
+		}
+		bin += hex2bin(next_line[1]);
+	    }
+	    
+	    if(bin!=data) {
+		sys.puts("Data mismatch");
+		sys.puts("Expected LINE ( '" + bin2hex(hex2bin(line[1])) + "' )  vs ");
+		sys.puts("Expected DATA ( '" + bin2hex(data) + "' ) \n\n");
+		return false;
 	    }
 	}
 	else {

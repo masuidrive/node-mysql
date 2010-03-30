@@ -87,21 +87,6 @@ var test_result1 = function() {
 	assert.equal(4, result.records[3][0]);
 	assert.equal(null, result.records[3][1]); // null string
 	
-	// result hash with table name
-	var res = result.toHash(result.records[0]);
-	result.fieldname_with_table = true
-	assert.equal(res['t.id'], 1);
-	assert.equal(res['t.str'], 'abc');
-	var res = result.toHash(result.records[1]);
-	assert.equal(res['t.id'], 2);
-	assert.equal(res['t.str'], '0');
-	var res = result.toHash(result.records[2]);
-	assert.equal(res['t.id'], 3);
-	assert.equal(res['t.str'], '');
-	var res = result.toHash(result.records[3]);
-	assert.equal(res['t.id'], 4);
-	assert.equal(res['t.str'], undefined);
-
 	// result hash fieldname
 	var res = result.toHash(result.records[0]);
 	assert.equal(res['id'], 1);
@@ -115,6 +100,37 @@ var test_result1 = function() {
 	var res = result.toHash(result.records[3]);
 	assert.equal(res['id'], 4);
 	assert.equal(res['str'], undefined);
+	
+	// result hash with table name
+	result.fieldname_with_table = true
+	var res = result.toHash(result.records[0]);
+	assert.equal(res['t.id'], 1);
+	assert.equal(res['t.str'], 'abc');
+	var res = result.toHash(result.records[1]);
+	assert.equal(res['t.id'], 2);
+	assert.equal(res['t.str'], '0');
+	var res = result.toHash(result.records[2]);
+	assert.equal(res['t.id'], 3);
+	assert.equal(res['t.str'], '');
+	var res = result.toHash(result.records[3]);
+	assert.equal(res['t.id'], 4);
+	assert.equal(res['t.str'], undefined);
+
+	// result hash fieldname
+	result.fieldname_with_table = false
+	var res = result.toHash(result.records[0]);
+	assert.equal(res['id'], 1);
+	assert.equal(res['str'], 'abc');
+	var res = result.toHash(result.records[1]);
+	assert.equal(res['id'], 2);
+	assert.equal(res['str'], '0');
+	var res = result.toHash(result.records[2]);
+	assert.equal(res['id'], 3);
+	assert.equal(res['str'], '');
+	var res = result.toHash(result.records[3]);
+	assert.equal(res['id'], 4);
+	assert.equal(res['str'], undefined);
+	
     });
 
     // table & column alias
@@ -140,6 +156,7 @@ var test_result1 = function() {
 	assert.equal(4, result.records[3][0]);
 	
 	// result hash
+	result.fieldname_with_table = true
 	var res = result.toHash(result.records[0]);
 	assert.equal(res['ttt.pkey'], 1);
 	var res = result.toHash(result.records[1]);

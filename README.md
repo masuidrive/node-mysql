@@ -11,7 +11,7 @@ I have a lot of tasks for to make stable driver.
 I want your help.
 
 ## Tests
-I want it to you using for protoype or test project.
+I want to you using for protoype or test project.
 It's testing stage, It's not for real project
 When you find bugs, strange thing and unknown thing, please send to [@masuidrive_en](http://twitter.com/masuidrive_en) or [github issues](http://github.com/masuidrive/node-mysql/issues)
 If you write test code (test folder), It's awesome!!
@@ -83,9 +83,6 @@ please see [AUTHORS](http://github.com/masuidrive/node-mysql/blob/master/AUTHORS
 * [http://twitter.com/masuidrive_en](http://twitter.com/masuidrive_en/) (English)
 * [http://blog.masuidrive.jp/](http://blog.masuidrive.jp/) (Japanese)
 * [http://twitter.com/masuidrive](http://twitter.com/masuidrive/) (Japanese)
-
-and awesome contributes.
- file.
 
 
 # Related licenses

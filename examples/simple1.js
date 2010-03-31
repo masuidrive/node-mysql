@@ -1,5 +1,5 @@
 var sys = require('sys');
-var mysql = require('./lib/mysql');
+var mysql = require('../lib/mysql');
 
 /*
 > mysql -u root

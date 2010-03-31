@@ -7,18 +7,18 @@ node-mysql is pure Javascript MySQL network driver for [node.js](http://nodejs.o
 It's for testing stage.
 Now It can use for this driver developer only.
 
-I have a lot of tasks for to make stable driver.
+I have a lot of tasks to make stable driver.
 I want your help.
 
 ## Tests
-I want to you using for protoype or test project.
+I need your help in testing this driver. It will be great if you use it for testing or prototyping.
 It's testing stage, It's not for real project
-When you find bugs, strange thing and unknown thing, please send to [@masuidrive_en](http://twitter.com/masuidrive_en) or [github issues](http://github.com/masuidrive/node-mysql/issues)
+If you find bugs, strange thing and unknown things, please send them to [@masuidrive_en](http://twitter.com/masuidrive_en) or [github issues](http://github.com/masuidrive/node-mysql/issues)
 If you write test code (test folder), It's awesome!!
 
-## Documents
+## Documentation
 
-Sorry, This driver's document is less.
+Sorry, This driver's documentation is less.
 My English skill is horrible. :-(
 
 This drivers is came from Ruby's mysql driver.
@@ -26,7 +26,7 @@ Almost API is same as [mysql.rb](http://github.com/tmtm/ruby-mysql/blob/2.9/lib/
 
 
 ## Pool mananager
- Currently, this driver supported single connection only.
+Currently, this driver supported single connection only.
 We need multi mysql driver pool manager for multi connections.
 And connection pool require transaction support.
 

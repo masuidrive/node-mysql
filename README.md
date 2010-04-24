@@ -60,7 +60,7 @@ And see exmaples folder.
 
 # Requirements
 
-* [node.js](http://nodejs.org/) >= 0.1.33
+* [node.js](http://nodejs.org/) >= 0.1.92
 
 
 Optional:

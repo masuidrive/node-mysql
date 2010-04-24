@@ -179,7 +179,8 @@ var test_result1 = function() {
 	promise.emitSuccess();
     },
     function(error) { 
-         assert.ok(false);
+	conn.close();
+	promise.emitFailure();
     });
 
     return promise;
@@ -200,7 +201,6 @@ var test_insert256rows = function() {
 	q.push("("+i+")");
     }
     conn.query("INSERT INTO t(id) VALUES "+q.join(","), function(result) {
-	assert.equal(1,2);
 	assert.equal(256, result.affected_rows);
     });
     

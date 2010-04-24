@@ -36,7 +36,7 @@ var test_result1 = function() {
     helper.exceptClass(mysql.Connection, conn);
     conn.connect();
     conn.query("CREATE TEMPORARY TABLE t (id INTEGER, str VARCHAR(254), PRIMARY KEY (id)) CHARACTER SET 'utf8' COLLATE 'utf8_general_ci'");
-    conn.query("INSERT INTO t VALUES (1,'abc'),(2,'0'),(3,''),(4,null)");
+    conn.query("INSERT INTO t VALUES (1,'abc'),(2,'0'),(3,''),(256,null)");
     
     // execute SELECT query
     helper.expect_callback();
@@ -83,8 +83,8 @@ var test_result1 = function() {
 	assert.equal('0', result.records[1][1]); // string
 	assert.equal(3, result.records[2][0]);
 	assert.equal('', result.records[2][1]); // blank string
-	assert.equal(4, result.records[3][0]);
-	assert.equal(null, result.records[3][1]); // null string
+	assert.equal(256, result.records[3][0]);
+	assert.equal(undefined, result.records[3][1]); // null string
 	
 	// result hash fieldname
 	var res = result.toHash(result.records[0]);
@@ -97,7 +97,7 @@ var test_result1 = function() {
 	assert.equal(res['id'], 3);
 	assert.equal(res['str'], '');
 	var res = result.toHash(result.records[3]);
-	assert.equal(res['id'], 4);
+	assert.equal(res['id'], 256);
 	assert.equal(res['str'], undefined);
 	
 	// result hash with table name
@@ -112,7 +112,7 @@ var test_result1 = function() {
 	assert.equal(res['t.id'], 3);
 	assert.equal(res['t.str'], '');
 	var res = result.toHash(result.records[3]);
-	assert.equal(res['t.id'], 4);
+	assert.equal(res['t.id'], 256);
 	assert.equal(res['t.str'], undefined);
 
 	// result hash fieldname
@@ -127,9 +127,8 @@ var test_result1 = function() {
 	assert.equal(res['id'], 3);
 	assert.equal(res['str'], '');
 	var res = result.toHash(result.records[3]);
-	assert.equal(res['id'], 4);
+	assert.equal(res['id'], 256);
 	assert.equal(res['str'], undefined);
-	
     });
 
     // table & column alias
@@ -152,7 +151,7 @@ var test_result1 = function() {
 	assert.equal(1, result.records[0][0]);
 	assert.equal(2, result.records[1][0]);
 	assert.equal(3, result.records[2][0]);
-	assert.equal(4, result.records[3][0]);
+	assert.equal(256, result.records[3][0]);
 	
 	// result hash
 	result.fieldname_with_table = true
@@ -163,7 +162,7 @@ var test_result1 = function() {
 	var res = result.toHash(result.records[2]);
 	assert.equal(res['ttt.pkey'], 3);
 	var res = result.toHash(result.records[3]);
-	assert.equal(res['ttt.pkey'], 4);
+	assert.equal(res['ttt.pkey'], 256);
 
 	// result hash fieldname without table
 	result.fieldname_with_table = false
@@ -174,18 +173,55 @@ var test_result1 = function() {
 	var res = result.toHash(result.records[2]);
 	assert.equal(res['pkey'], 3);
 	var res = result.toHash(result.records[3]);
-	assert.equal(res['pkey'], 4);
+	assert.equal(res['pkey'], 256);
 	
 	conn.close();
 	promise.emitSuccess();
     },
     function(error) { 
-         assert.ok(true, false);
+         assert.ok(false);
     });
 
-    return promise
+    return promise;
 };
 all_tests.push(["test_result1", test_result1]);
+
+var test_insert256rows = function() {
+    var promise = new Promise();
+    var conn = new mysql.Connection(config.mysql.hostname, 
+					  config.mysql.username,
+					  config.mysql.password,
+					  config.mysql.database);
+    helper.exceptClass(mysql.Connection, conn);
+    conn.connect();
+    conn.query("CREATE TEMPORARY TABLE t (id INTEGER)");
+    var q = [];
+    for(var i=0; i<256; ++i) {
+	q.push("("+i+")");
+    }
+    conn.query("INSERT INTO t(id) VALUES "+q.join(","), function(result) {
+	assert.equal(1,2);
+	assert.equal(256, result.affected_rows);
+    });
+    
+    // execute SELECT query
+    helper.expect_callback();
+    conn.query('SELECT * FROM t ORDER BY id', function(result) { // Success
+	helper.was_called_back();
+	
+	assert.equal(1, result.fields.length);
+	assert.equal(256, result.records.length);
+	
+	conn.close();
+	promise.emitSuccess();
+    },
+    function(error) { 
+         assert.ok(false);
+    });
+
+    return promise;
+};
+all_tests.push(["test_insert256rows", test_insert256rows]);
 
 
 var test_query_without_table = function() {

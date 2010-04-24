@@ -5,7 +5,6 @@ var sys = require("sys");
 var assert = require("assert");
 
 var helper = require('./helper');
-process.mixin(GLOBAL, helper);
 var config = require('./config');
 var mysql = require('../lib/mysql');
 var Promise = require('../lib/mysql/node-promise').Promise;
@@ -373,7 +372,7 @@ var test_prepared_statements = function() {
     helper.expect_callback();
     conn.prepare('INSERT INTO t VALUE (?,?)', function(stmt) {
 	helper.was_called_back();
-	stmt.execute([1, 'abc'], scope(this, function(result) {
+	stmt.execute([1, 'abc'], helper.scope(this, function(result) {
 	    // verify inserted data
 	    helper.expect_callback();
 	    conn.query('SELECT * FROM t ORDER BY id', function(result) {
@@ -385,7 +384,7 @@ var test_prepared_statements = function() {
 		assert.equal('abc', result.records[0][1]);
 		
 		helper.expect_callback();
-		stmt.execute([2,'def'], scope(this, function(result) {
+		stmt.execute([2,'def'], helper.scope(this, function(result) {
 		    helper.was_called_back();
 		    // verify inserted data
 		    helper.expect_callback();
@@ -400,14 +399,14 @@ var test_prepared_statements = function() {
 			assert.equal('def', result.records[1][1]);
 			
 			helper.expect_callback();
-			stmt.execute([3,'def'], scope(this, function(result) {
+			stmt.execute([3,'def'], helper.scope(this, function(result) {
 			    helper.was_called_back();
 			    
 			    helper.expect_callback();
 			    conn.prepare('SELECT * FROM t WHERE str=? ORDER BY id', function(stmt2) {
 				helper.was_called_back();
 				helper.expect_callback();
-				stmt2.execute(['def'],  scope(this, function(result) {
+				stmt2.execute(['def'],  helper.scope(this, function(result) {
 				    helper.was_called_back();
 				    // result data
 				    assert.equal(2, result.records.length);
@@ -601,7 +600,7 @@ var test_prepared_statements_type = function(sql_type, value, assert_value_or_ca
 	helper.expect_callback();
 	conn.prepare('INSERT INTO t VALUE (?,?)', function(stmt) {
 	    helper.was_called_back();
-	    stmt.execute([1, value], scope(this,function(result) {
+	    stmt.execute([1, value], helper.scope(this,function(result) {
 		// verify inserted data
 		
 		helper.expect_callback();

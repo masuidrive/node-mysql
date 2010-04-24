@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 var sys = require("sys");
-var tcp = require("tcp");
+var tcp = require("net");
 var test = require("mjsunit");
 
 var streams = {
@@ -8,7 +8,7 @@ var streams = {
 	["server", "38 00 00 00"],
 	["server", "0a 35 2e 31 2e 34 33 2d 6c 6f 67 00 7d 13 00 00 52 7a 33 2a 76 38 51 6d 00 ff f7 08 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 53 39 60 58 79 77 69 2b 36 6f 4e 78 00"],
 	["client", "4f 00 00 01"],
-	["client", "0d a2 00 00 00 00 00 40 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00 14 3a 92 54 0d f9 cc b8 79 34 04 6c f4 2d a0 69 58 4e cc 01 40 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00"], 
+	["client", "0d a2 00 00 00 00 00 40 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00 14 3a 92 54 0d f9 cc b8 79 34 04 6c f4 2d a0 69 58 4e cc 01 40 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00"],
 	["sleep", 10*1000] // Timeout
     ],
     
@@ -28,9 +28,9 @@ var streams = {
     
     "query timeout": [
 	["server", "38 00 00 00"],
-	["server", "0a 35 2e 31 2e 34 33 2d 6c 6f 67 00 45 15 00 00 41 63 4f 40 35 29 6c 65 00 ff f7 08 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 35 78 7e 31 75 7c 31 78 2d 74 26 59 00"],
+	["server", "0a 35 2e 31 2e 34 33 2d 6c 6f 67 00 7d 13 00 00 52 7a 33 2a 76 38 51 6d 00 ff f7 08 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 53 39 60 58 79 77 69 2b 36 6f 4e 78 00"],
 	["client", "4f 00 00 01"],
-	["client", "0d a2 00 00 00 00 00 40 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00 14 e6 90 ce 02 19 71 77 75 0d b0 50 7d 16 d0 f6 46 96 e6 2d 56 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00"],
+	["client", "0d a2 00 00 00 00 00 40 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00 14 3a 92 54 0d f9 cc b8 79 34 04 6c f4 2d a0 69 58 4e cc 01 40 6e 6f 64 65 6a 73 5f 6d 79 73 71 6c 00"],
 	["server", "07 00 00 02"],
 	["server", "00 00 00 02 00 00 00"],
 	["client", "11 00 00 00"],
@@ -48,11 +48,11 @@ var server = tcp.createServer(function (socket) {
         return x.toString();
     }
     var hex2bin = function(str) {
-        str = toString(str);
+	str = toString(str);
        	return str.split(' ').map(function(s){return String.fromCharCode(parseInt(s,16));}).join('');
-    }    
+    }
     var bin2hex = function (str){
-        str = toString(str);
+	str = toString(str);
         return str.split('').map(function(s){return ((s.charCodeAt(0)<16?"0":'')+s.charCodeAt(0).toString(16)).substring();}).join(' ');
     }
     
@@ -60,8 +60,8 @@ var server = tcp.createServer(function (socket) {
 	if(current_stream && current_stream.length>0) {
 	    if(current_stream[0][0]=="server") {
 		var line = current_stream.shift();
-		sys.puts("Server> "+line[1]);
-		socket.write(hex2bin(line[1]));
+		sys.puts("Server> "+bin2hex(hex2bin(line[1])));
+		socket.write(hex2bin(line[1]), 'binary');
 		write_process();
 	    }
 	    else if(current_stream[0][0]=="sleep") {
@@ -72,7 +72,7 @@ var server = tcp.createServer(function (socket) {
 	    else if(current_stream[0][0]=="close") {
 		var line = current_stream.shift();
 		sys.puts("Close");
-		socket.close();
+		socket.end();
 	    }
 	}
     }
@@ -96,9 +96,9 @@ var server = tcp.createServer(function (socket) {
 	    }
 	    
 	    var bin = hex2bin(line[1]);
-	    if(bin.length < data.length) {
+	    while(bin.length < data.length) {
 		var next_line = current_stream.shift();
-		if(next_line[0]=="server") {
+		if(typeof(next_line)=='undefined' || next_line[0]=="server") {
       		    return sys.puts("Sequence error");
 		}
 		bin += hex2bin(next_line[1]);
@@ -106,8 +106,8 @@ var server = tcp.createServer(function (socket) {
 	    
 	    if(bin!=data) {
 		sys.puts("Data mismatch");
-		sys.puts("Expected LINE ( '" + bin2hex(hex2bin(line[1])) + "' )  vs ");
-		sys.puts("Expected DATA ( '" + bin2hex(data) + "' ) \n\n");
+		sys.puts("Expected ( '" + bin2hex(bin) + "' )  vs ");
+		sys.puts("DATA     ( '" + bin2hex(data) + "' ) \n\n");
 		return false;
 	    }
 	}
@@ -119,7 +119,7 @@ var server = tcp.createServer(function (socket) {
     });
     socket.addListener("end", function () {
 	if(current_stream.length>0) sys.puts("Sequence left: "+current_stream.join(", "));
-	socket.close();
+	socket.end();
 	current_stream = undefined;
 	sys.puts("Closed\n");
     });

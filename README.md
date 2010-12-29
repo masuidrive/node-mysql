@@ -1,5 +1,9 @@
 # node-mysql
 
+*This library is obsolete.*
+*please check https://github.com/felixge/node-mysql*
+
+
 node-mysql is pure Javascript MySQL network driver for [node.js](http://nodejs.org/)
 
 
